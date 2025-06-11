@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Big Bear Medicine Gathering - Moon Phase Scheduler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2C1810 0%, #4A2C2A 50%, #1F2937 100%);
+            color: #F3F4F6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #F59E0B;
+            font-size: 2.8em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #D1D5DB;
+            font-size: 1.2em;
+            font-style: italic;
+        }
+        
+        .controls {
+            background: rgba(139, 69, 19, 0.15);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 35px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .year-selector {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        .year-selector button, .btn {
+            background: linear-gradient(45deg, #7C3AED, #A855F7);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+        }
+        
+        .year-selector button:hover, .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(45deg, #059669, #10B981);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #DC2626, #EF4444);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(45deg, #D97706, #F59E0B);
+        }
+        
+        .year-display {
+            font-size: 28px;
+            font-weight: bold;
+            color: #F59E0B;
+            min-width: 100px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .member-management {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .member-input {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: #F3F4F6;
+            font-size: 14px;
+            min-width: 200px;
+            transition: all 0.3s ease;
+        }
+        
+        .member-input:focus {
+            outline: none;
+            border-color: #F59E0B;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .members-list {
+            background: rgba(139, 69, 19, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        
+        .member-tag {
+            display: inline-block;
+            background: linear-gradient(45deg, #7C3AED, #A855F7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+        }
+        
+        .member-tag .remove-btn {
+            background: none;
+            border: none;
+            color: #FCA5A5;
+            cursor: pointer;
+            margin-left: 10px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 25px;
+        }
+        
+        .moon-card {
+            background: rgba(139, 69, 19, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid rgba(245, 158, 11, 0.2);
+            backdrop-filter: blur(8px);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        
+        .moon-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.5);
+        }
+        
+        .moon-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        .moon-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .moon-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .moon-date {
+            font-size: 20px;
+            font-weight: 600;
+            color: #F59E0B;
+            margin-bottom: 8px;
+        }
+        
+        .moon-day {
+            font-size: 14px;
+            color: #D1D5DB;
+        }
+        
+        .date-selection {
+            margin-bottom: 25px;
+        }
+        
+        .date-options {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .date-option {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 12px 6px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .date-option:hover {
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.05);
+        }
+        
+        .date-option.selected {
+            border-color: #F59E0B;
+            background: rgba(245, 158, 11, 0.2);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+        }
+        
+        .date-option.attendance-low {
+            background: rgba(234, 88, 12, 0.2);
+            border-color: rgba(234, 88, 12, 0.5);
+        }
+        
+        .date-option.attendance-good {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.5);
+        }
+        
+        .day-label {
+            font-weight: bold;
+            color: #F59E0B;
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
+        
+        .date-num {
+            font-size: 16px;
+            margin: 4px 0;
+            font-weight: 600;
+        }
+        
+        .roles-section {
+            background: rgba(124, 58, 237, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+        }
+        
+        .role-assignment {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .role-label {
+            font-size: 14px;
+            color: #A855F7;
+            font-weight: 600;
+        }
+        
+        .role-person {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .role-selector {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 6px 12px;
+            color: #F3F4F6;
+            font-size: 12px;
+            min-width: 120px;
+        }
+        
+        .randomize-btn {
+            background: linear-gradient(45deg, #EC4899, #F472B6);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .randomize-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+        }
+        
+        .meeting-info {
+            background: rgba(34, 197, 94, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .meeting-time input, .meeting-location input, .meeting-notes textarea {
+            width: 100%;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 10px;
+            color: #F3F4F6;
+            font-size: 14px;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .meeting-time input:focus, .meeting-location input:focus, .meeting-notes textarea:focus {
+            outline: none;
+            border-color: #22C55E;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+        }
+        
+        .meeting-notes textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+        
+        .attendance-section {
+            background: rgba(249, 115, 22, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+        
+        .attendance-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .attendance-item {
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .attendance-item select {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            padding: 4px 8px;
+            color: #F3F4F6;
+            font-size: 11px;
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        .status-attending { color: #22C55E; }
+        .status-maybe { color: #F59E0B; }
+        .status-not-attending { color: #EF4444; }
+        
+        label {
+            display: block;
+            font-size: 12px;
+            color: #D1D5DB;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+        
+        .export-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+        
+        .export-btn {
+            background: linear-gradient(45deg, #F59E0B, #FBBF24);
+            color: #1F2937;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+        
+        .export-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(245, 158, 11, 0.4);
+        }
+        
+        .attendance-count {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #9CA3AF;
+            text-align: center;
+        }
+        
+        .confirmation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: #374151;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            margin: 20px;
+            border: 2px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        @media (max-width: 768px) {
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .member-management {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .date-options {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 4px;
+            }
+            
+            .attendance-list {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐻 Big Bear Medicine Gathering</h1>
+        <div class="subtitle">Moon Phase Sacred Circle Scheduler</div>
+        
+        <div class="controls">
+            <div class="control-row">
+                <div class="year-selector">
+                    <button onclick="changeYear(-1)">← Previous Year</button>
+                    <div class="year-display" id="currentYear">2025</div>
+                    <button onclick="changeYear(1)">Next Year →</button>
+                </div>
+                
+                <div class="member-management">
+                    <input type="text" id="newMemberName" class="member-input" placeholder="Add sacred circle member...">
+                    <button class="btn btn-success" onclick="addMember()">Add Member</button>
+                    <button class="btn btn-warning" onclick="showRandomizeAllConfirmation()">🎲 Randomize All Roles</button>
+                </div>
+            </div>
+            
+            <div class="members-list">
+                <label>Sacred Circle Members:</label>
+                <div id="membersList">
+                    <!-- Members will be displayed here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="schedule-grid" id="scheduleGrid">
+            <!-- New moon cards will be generated here -->
+        </div>
+        
+        <div class="export-section">
+            <button class="export-btn" onclick="exportSchedule()">📅 Export Sacred Schedule</button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Confirm Action</h3>
+            <p id="modalMessage">Are you sure?</p>
+            <div class="modal-buttons">
+                <button class="btn btn-success" id="confirmBtn">Yes, Continue</button>
+                <button class="btn btn-danger" onclick="hideConfirmation()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentYear = 2025;
+        let scheduleData = {};
+        let members = [];
+        let pendingAction = null;
+
+        // Function to calculate new moon dates
+        function getNewMoonDates(year) {
+            const knownNewMoons2025 = [
+                new Date(2025, 0, 29),  // January 29
+                new Date(2025, 1, 28),  // February 28
+                new Date(2025, 2, 29),  // March 29
+                new Date(2025, 3, 27),  // April 27
+                new Date(2025, 4, 27),  // May 27
+                new Date(2025, 5, 25),  // June 25
+                new Date(2025, 6, 24),  // July 24
+                new Date(2025, 7, 23),  // August 23
+                new Date(2025, 8, 21),  // September 21
+                new Date(2025, 9, 21),  // October 21
+                new Date(2025, 10, 20), // November 20
+                new Date(2025, 11, 19)  // December 19
+            ];
+
+            if (year === 2025) {
+                return knownNewMoons2025;
+            }
+
+            // Approximation for other years
+            const baseDate = new Date(year, 0, 6);
+            const lunarCycle = 29.53 * 24 * 60 * 60 * 1000;
+            const newMoons = [];
+            
+            for (let i = 0; i < 13; i++) {
+                const moonDate = new Date(baseDate.getTime() + (i * lunarCycle));
+                if (moonDate.getFullYear() === year) {
+                    newMoons.push(moonDate);
+                }
+            }
+            
+            return newMoons.filter(date => date.getFullYear() === year);
+        }
+
+        function getFiveDayWindow(newMoonDate) {
+            const dates = [];
+            for (let i = -2; i <= 2; i++) {
+                const date = new Date(newMoonDate);
+                date.setDate(date.getDate() + i);
+                dates.push({
+                    date: date,
+                    label: i === -2 ? '2 Days Before' : 
+                           i === -1 ? '1 Day Before' : 
+                           i === 0 ? 'New Moon' : 
+                           i === 1 ? '1 Day After' : 
+                           '2 Days After',
+                    isNewMoon: i === 0
+                });
+            }
+            return dates;
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function formatLongDate(date) {
+            return date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function addMember() {
+            const input = document.getElementById('newMemberName');
+            const name = input.value.trim();
+            
+            if (name && !members.includes(name)) {
+                members.push(name);
+                input.value = '';
+                updateMembersList();
+                generateSchedule();
+                saveData();
+            }
+        }
+
+        function removeMember(name) {
+            members = members.filter(m => m !== name);
+            updateMembersList();
+            generateSchedule();
+            saveData();
+        }
+
+        function updateMembersList() {
+            const container = document.getElementById('membersList');
+            container.innerHTML = members.map(member => 
+                `<span class="member-tag">
+                    ${member}
+                    <button class="remove-btn" onclick="removeMember('${member}')">×</button>
+                </span>`
+            ).join('');
+        }
+
+        function showConfirmation(title, message, action) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('confirmationModal').style.display = 'flex';
+            pendingAction = action;
+        }
+
+        function hideConfirmation() {
+            document.getElementById('confirmationModal').style.display = 'none';
+            pendingAction = null;
+        }
+
+        function executeConfirmedAction() {
+            if (pendingAction) {
+                pendingAction();
+                hideConfirmation();
+            }
+        }
+
+        function showRandomizeConfirmation(cardId) {
+            showConfirmation(
+                'Randomize Roles',
+                'This will randomly reassign the host and discussion leader roles. Continue?',
+                () => randomizeRoles(cardId)
+            );
+        }
+
+        function showRandomizeAllConfirmation() {
+            showConfirmation(
+                'Randomize All Roles',
+                'This will randomly reassign host and discussion leader roles for ALL moon gatherings. Continue?',
+                () => randomizeAllRoles()
+            );
+        }
+
+        function randomizeRoles(cardId) {
+            if (members.length < 2) return;
+            
+            const shuffled = [...members].sort(() => Math.random() - 0.5);
+            const data = scheduleData[cardId] || {};
+            
+            data.host = shuffled[0];
+            data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
+            
+            scheduleData[cardId] = data;
+            saveData();
+            
+            // Update the display
+            const hostSelect = document.querySelector(`[data-card="${cardId}"] .host-selector`);
+            const leaderSelect = document.querySelector(`[data-card="${cardId}"] .leader-selector`);
+            
+            if (hostSelect) hostSelect.value = data.host;
+            if (leaderSelect) leaderSelect.value = data.leader;
+        }
+
+        function randomizeAllRoles() {
+            if (members.length < 2) {
+                alert('You need at least 2 members to assign roles.');
+                return;
+            }
+            
+            const newMoons = getNewMoonDates(currentYear);
+            newMoons.forEach((date, index) => {
+                const cardId = `moon-${currentYear}-${index}`;
+                const shuffled = [...members].sort(() => Math.random() - 0.5);
+                const data = scheduleData[cardId] || {};
+                
+                data.host = shuffled[0];
+                data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
+                
+                scheduleData[cardId] = data;
+            });
+            
+            saveData();
+            generateSchedule();
+        }
+
+        function updateAttendance(cardId, member, status) {
+            if (!scheduleData[cardId]) scheduleData[cardId] = {};
+            if (!scheduleData[cardId].attendance) scheduleData[cardId].attendance = {};
+            
+            scheduleData[cardId].attendance[member] = status;
+            saveData();
+            updateAttendanceDisplay(cardId);
+        }
+
+        function updateAttendanceDisplay(cardId) {
+            const data = scheduleData[cardId] || {};
+            const attendance = data.attendance || {};
+            
+            const attendingCount = Object.values(attendance).filter(status => status === 'attending').length;
+            const countElement = document.querySelector(`[data-card="${cardId}"] .attendance-count`);
+            
+            if (countElement) {
+                countElement.textContent = `${attendingCount} confirmed attending`;
+                countElement.className = `attendance-count ${attendingCount >= 4 ? 'status-attending' : 'status-maybe'}`;
+            }
+            
+            // Update date option colors
+            const card = document.querySelector(`[data-card="${cardId}"]`);
+            const dateOptions = card.querySelectorAll('.date-option');
+            dateOptions.forEach(option => {
+                option.classList.remove('attendance-low', 'attendance-good');
+                if (attendingCount >= 4) {
+                    option.classList.add('attendance-good');
+                } else if (attendingCount > 0) {
+                    option.classList.add('attendance-low');
+                }
+            });
+        }
+
+        function updateRole(cardId, role, member) {
+            if (!scheduleData[cardId]) scheduleData[cardId] = {};
+            scheduleData[cardId][role] = member;
+            saveData();
+        }
+
+        function generateSchedule() {
+            const newMoons = getNewMoonDates(currentYear);
+            const grid = document.getElementById('scheduleGrid');
+            grid.innerHTML = '';
+
+            newMoons.forEach((date, index) => {
+                const cardId = `moon-${currentYear}-${index}`;
+                const savedData = scheduleData[cardId] || {};
+                const fiveDayWindow = getFiveDayWindow(date);
+                const attendance = savedData.attendance || {};
+                const attendingCount = Object.values(attendance).filter(status => status === 'attending').length;
+
+                const card = document.createElement('div');
+                card.className = 'moon-card';
+                card.setAttribute('data-card', cardId);
+                
+                card.innerHTML = `
+                    <div class="moon-header">
+                        <div class="moon-icon">🌑</div>
+                        <div class="moon-date">${date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</div>
+                        <div class="moon-day">New Moon: ${formatDate(date)}</div>
+                    </div>
+                    
+                    <div class="date-selection">
+                        <label>Select Sacred Gathering Date:</label>
+                        <div class="date-options">
+                            ${fiveDayWindow.map((day, dayIndex) => `
+                                <div class="date-option ${savedData.selectedDate === dayIndex ? 'selected' : ''} ${attendingCount >= 4 ? 'attendance-good' : attendingCount > 0 ? 'attendance-low' : ''}"
+                                     onclick="selectDate('${cardId}', ${dayIndex})">
+                                    <div class="day-label">${day.label}</div>
+                                    <div class="date-num">${day.date.getDate()}</div>
+                                    <div style="font-size: 10px;">${day.date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="roles-section">
+                        <div class="role-assignment">
+                            <span class="role-label">Sacred Host:</span>
+                            <select class="role-selector host-selector" onchange="updateRole('${cardId}', 'host', this.value)">
+                                <option value="">Select host...</option>
+                                ${members.map(member => `<option value="${member}" ${savedData.host === member ? 'selected' : ''}>${member}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="role-assignment">
+                            <span class="role-label">Circle Leader:</span>
+                            <select class="role-selector leader-selector" onchange="updateRole('${cardId}', 'leader', this.value)">
+                                <option value="">Select leader...</option>
+                                ${members.map(member => `<option value="${member}" ${savedData.leader === member ? 'selected' : ''}>${member}</option>`).join('')}
+                            </select>
+                        </div>
+                        <button class="randomize-btn" onclick="showRandomizeConfirmation('${cardId}')">🎲 Randomize Roles</button>
+                    </div>
+                    
+                    <div class="meeting-info">
+                        <div class="meeting-time">
+                            <label>Gathering Time</label>
+                            <input type="time" value="${savedData.time || '19:00'}" 
+                                   onchange="saveDataField('${cardId}', 'time', this.value)">
+                        </div>
+                        
+                        <div class="meeting-location">
+                            <label>Sacred Space Location</label>
+                            <input type="text" placeholder="Enter gathering location..." 
+                                   value="${savedData.location || ''}"
+                                   onchange="saveDataField('${cardId}', 'location', this.value)">
+                        </div>
+                        
+                        <div class="meeting-notes">
+                            <label>Circle Theme & Medicine</label>
+                            <textarea placeholder="Sacred focus, intentions, materials needed..."
+                                      onchange="saveDataField('${cardId}', 'notes', this.value)">${savedData.notes || ''}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="attendance-section">
+                        <label>Circle Attendance:</label>
+                        <div class="attendance-list">
+                            ${members.map(member => {
+                                const memberAttendance = attendance[member] || 'maybe';
+                                return `
+                                    <div class="attendance-item">
+                                        <strong>${member}</strong>
+                                        <select class="status-${memberAttendance}" 
+                                                onchange="updateAttendance('${cardId}', '${member}', this.value); this.className='status-' + this.value;">
+                                            <option value="attending" ${memberAttendance === 'attending' ? 'selected' : ''}>✓ Attending</option>
+                                            <option value="maybe" ${memberAttendance === 'maybe' ? 'selected' : ''}>? Maybe</option>
+                                            <option value="not-attending" ${memberAttendance === 'not-attending' ? 'selected' : ''}>✗ Cannot Attend</option>
+                                        </select>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <div class="attendance-count ${attendingCount >= 4 ? 'status-attending' : 'status-maybe'}">
+                            ${attendingCount} confirmed attending
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function selectDate(cardId, dateIndex) {
+            if (!scheduleData[cardId]) scheduleData[cardId] = {};
+            scheduleData[cardId].selectedDate = dateIndex;
+            saveData();
+            
+            // Update visual selection
+            const card = document.querySelector(`[data-card="${cardId}"]`);
+            const options = card.querySelectorAll('.date-option');
+            options.forEach((option, index) => {
+                option.classList.toggle('selected', index === dateIndex);
+            });
+        }
+
+        function saveDataField(cardId, field, value) {
+            if (!scheduleData[cardId]) scheduleData[cardId] = {};
+            scheduleData[cardId][field] = value;
+            saveData();
+        }
+
+        function saveData() {
+            const dataToSave = {
+                members: members,
+                scheduleData: scheduleData
+            };
+            localStorage.setItem('bigBearSchedule', JSON.stringify(dataToSave));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('bigBearSchedule');
+            if (saved) {
+                const data = JSON.parse(saved);
+                members = data.members || [];
+                scheduleData = data.scheduleData || {};
+            }
+        }
+
+        function changeYear(delta) {
+            currentYear += delta;
+            document.getElementById('currentYear').textContent = currentYear;
+            generateSchedule();
+        }
+
+        function exportSchedule() {
+            const newMoons = getNewMoonDates(currentYear);
+            let exportText = `🐻 Big Bear Medicine Gathering - Sacred Moon Schedule ${currentYear}\n`;
+            exportText += '🌟'.repeat(70) + '\n\n';
+
+            newMoons.forEach((date, index) => {
+                const cardId = `moon-${currentYear}-${index}`;
+                const data = scheduleData[cardId] || {};
+                const fiveDayWindow = getFiveDayWindow(date);
+                const selectedDate = data.selectedDate !== undefined ? fiveDayWindow[data.selectedDate] : null;
+                const attendance = data.attendance || {};
+                const attendingCount = Object.values(attendance).filter(status => status === 'attending').length;
+                
+                exportText += `🌑 ${date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} New Moon Gathering\n`;
+                exportText += `📅 Sacred Date: ${selectedDate ? formatLongDate(selectedDate.date) : 'TBD'}\n`;
+                exportText += `🕒 Time: ${data.time || 'TBD'}\n`;
+                exportText += `🏔️ Sacred Space: ${data.location || 'TBD'}\n`;
+                exportText += `🏠 Host: ${data.host || 'TBD'}\n`;
+                exportText += `🗣️ Circle Leader: ${data.leader || 'TBD'}\n`;
+                exportText += `✨ Medicine Theme: ${data.notes || 'TBD'}\n`;
+                exportText += `👥 Circle Members Attending: ${attendingCount}\n`;
+                
+                if (Object.keys(attendance).length > 0) {
+                    exportText += `\n🔥 Sacred Circle Attendance:\n`;
+                    Object.entries(attendance).forEach(([member, status]) => {
+                        const statusIcon = status === 'attending' ? '✓' : status === 'maybe' ? '?' : '✗';
+                        exportText += `   ${statusIcon} ${member}\n`;
+                    });
+                }
+                
+                exportText += '\n' + '🌟'.repeat(50) + '\n\n';
+            });
+
+            exportText += `\n🦌 Sacred Circle Members: ${members.join(', ')}\n`;
+            exportText += `\nMay each gathering bring healing, wisdom, and connection to all who join the circle.\n`;
+
+            const blob = new Blob([exportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `big-bear-medicine-gathering-${currentYear}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Set up confirmation modal
+        document.getElementById('confirmBtn').onclick = executeConfirmedAction;
+
+        // Enter key support for adding members
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('newMemberName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addMember();
+                }
+            });
+        });
+
+        // Initialize
+        loadData();
+        updateMembersList();
+        generateSchedule();
+    </script>
+</body>
+</html>
