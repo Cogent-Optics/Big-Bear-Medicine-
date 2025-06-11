@@ -830,7 +830,7 @@
                 // Set up secure Firestore rules for sacred circle members only
                 await setupSecurityRules();
                 
-                // Listen to members collection
+                // Listen to members document
                 const membersUnsubscribe = window.firestore.onSnapshot(
                     window.firestore.doc(window.db, 'bearCircle', 'members'),
                     (doc) => {
@@ -845,13 +845,12 @@
 
                 // Listen to schedule data
                 const scheduleUnsubscribe = window.firestore.onSnapshot(
-                    window.firestore.collection(window.db, 'bearCircle', 'schedule', String(currentYear)),
-                    (snapshot) => {
-                        scheduleData = {};
-                        snapshot.forEach((doc) => {
-                            scheduleData[doc.id] = doc.data();
-                        });
-                        generateSchedule();
+                    window.firestore.doc(window.db, 'bearCircle', `schedule-${currentYear}`),
+                    (doc) => {
+                        if (doc.exists()) {
+                            scheduleData = doc.data() || {};
+                            generateSchedule();
+                        }
                     }
                 );
                 unsubscribeListeners.push(scheduleUnsubscribe);
@@ -888,7 +887,7 @@
             }
         }
 
-        async function saveToFirebase(collection, docId, data) {
+        async function saveToFirebase(docId, data) {
             try {
                 // Add security metadata
                 const secureData = {
@@ -898,7 +897,7 @@
                 };
                 
                 await window.firestore.setDoc(
-                    window.firestore.doc(window.db, 'bearCircle', collection, String(docId)),
+                    window.firestore.doc(window.db, 'bearCircle', String(docId)),
                     secureData,
                     { merge: true }
                 );
@@ -908,11 +907,13 @@
             }
         }
 
-        async function updateFirebaseField(collection, docId, field, value) {
+        async function updateFirebaseField(docId, field, value) {
             try {
-                const docRef = window.firestore.doc(window.db, 'bearCircle', collection, String(docId));
+                const docRef = window.firestore.doc(window.db, 'bearCircle', String(docId));
                 await window.firestore.updateDoc(docRef, {
-                    [field]: value
+                    [field]: value,
+                    lastModifiedBy: currentUser,
+                    lastModified: new Date().toISOString()
                 });
             } catch (error) {
                 console.error('Error updating Firebase:', error);
@@ -932,7 +933,7 @@
                 }
                 
                 const updatedMembers = [...members, name];
-                await saveToFirebase('members', 'members', { 
+                await saveToFirebase('members', { 
                     list: updatedMembers,
                     addedBy: currentUser,
                     dateAdded: new Date().toISOString()
@@ -955,7 +956,7 @@
             }
             
             const updatedMembers = members.filter(m => m !== name);
-            await saveToFirebase('members', 'members', { 
+            await saveToFirebase('members', { 
                 list: updatedMembers,
                 removedBy: currentUser,
                 dateRemoved: new Date().toISOString()
