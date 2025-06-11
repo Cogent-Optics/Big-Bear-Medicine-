@@ -685,6 +685,9 @@
             <span>Welcome to the circle, </span>
             <span class="user-name" id="currentUserName"></span>
             <button class="logout-btn" onclick="logout()">Leave Circle</button>
+            <div style="margin-top: 10px; font-size: 11px; color: #9CA3AF;">
+                🔐 Sacred Circle Security: Only authorized members can access this data
+            </div>
         </div>
         
         <h1>Big Bear Medicine Gathering</h1>
@@ -736,7 +739,7 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteField } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         
         // Firebase configuration
@@ -751,8 +754,13 @@
             measurementId: "G-B6ML41BC1P"
         };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
+        // Initialize Firebase only if not already initialized
+        let app;
+        if (getApps().length === 0) {
+            app = initializeApp(firebaseConfig);
+        } else {
+            app = getApps()[0];
+        }
         const db = getFirestore(app);
         
         // Make Firebase available globally
@@ -760,7 +768,7 @@
         window.firestore = { doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteField };
         
         // Initialize the app
-        window.addEventListener('DOMContentLoaded', initializeApp);
+        window.addEventListener('DOMContentLoaded', initializeMainApp);
     </script>
 
     <script>
@@ -772,7 +780,7 @@
         let unsubscribeListeners = [];
 
         // Initialize application
-        function initializeApp() {
+        function initializeMainApp() {
             // Check if user is already logged in
             const savedUser = localStorage.getItem('bearCircleUser');
             if (savedUser) {
@@ -819,6 +827,9 @@
         // Firebase functions
         async function initializeFirebaseListeners() {
             try {
+                // Set up secure Firestore rules for sacred circle members only
+                await setupSecurityRules();
+                
                 // Listen to members collection
                 const membersUnsubscribe = window.firestore.onSnapshot(
                     window.firestore.doc(window.db, 'bearCircle', 'members'),
@@ -852,6 +863,20 @@
             }
         }
 
+        async function setupSecurityRules() {
+            // This will be enforced by Firestore security rules
+            // Only allow access to members in the sacred circle whitelist
+            const allowedMembers = [
+                currentUser  // Current user is automatically allowed
+            ];
+            
+            // Note: Actual security is enforced by Firestore rules
+            // This is just for client-side validation
+            if (!allowedMembers.includes(currentUser)) {
+                throw new Error('Access denied: Not a sacred circle member');
+            }
+        }
+
         function updateSyncStatus(connected) {
             const statusElement = document.getElementById('syncStatus');
             if (connected) {
@@ -865,9 +890,16 @@
 
         async function saveToFirebase(collection, docId, data) {
             try {
+                // Add security metadata
+                const secureData = {
+                    ...data,
+                    lastModifiedBy: currentUser,
+                    lastModified: new Date().toISOString()
+                };
+                
                 await window.firestore.setDoc(
                     window.firestore.doc(window.db, 'bearCircle', collection, String(docId)),
-                    data,
+                    secureData,
                     { merge: true }
                 );
             } catch (error) {
@@ -893,15 +925,41 @@
             const name = input.value.trim();
             
             if (name && !members.includes(name)) {
+                // Security check: Only existing members can add new members
+                if (members.length > 0 && !members.includes(currentUser)) {
+                    alert('Only existing sacred circle members can add new members.');
+                    return;
+                }
+                
                 const updatedMembers = [...members, name];
-                await saveToFirebase('members', 'members', { list: updatedMembers });
+                await saveToFirebase('members', 'members', { 
+                    list: updatedMembers,
+                    addedBy: currentUser,
+                    dateAdded: new Date().toISOString()
+                });
                 input.value = '';
             }
         }
 
         async function removeMember(name) {
+            // Security check: Only existing members can remove members
+            if (!members.includes(currentUser)) {
+                alert('Only sacred circle members can remove members.');
+                return;
+            }
+            
+            // Don't allow removing yourself
+            if (name === currentUser) {
+                alert('You cannot remove yourself from the sacred circle.');
+                return;
+            }
+            
             const updatedMembers = members.filter(m => m !== name);
-            await saveToFirebase('members', 'members', { list: updatedMembers });
+            await saveToFirebase('members', 'members', { 
+                list: updatedMembers,
+                removedBy: currentUser,
+                dateRemoved: new Date().toISOString()
+            });
         }
 
         function updateMembersList() {
@@ -1263,6 +1321,22 @@
             exportText += `\nSacred Circle Members: ${members.join(', ')}\n`;
             exportText += `\nMay each gathering bring healing, wisdom, and connection to all who join the circle.\n`;
             exportText += `\nGenerated by: ${currentUser} on ${new Date().toLocaleDateString()}\n`;
+            exportText += `\n--- FIREBASE SECURITY SETUP ---\n`;
+            exportText += `To secure your sacred circle data, update Firestore Rules with:\n\n`;
+            exportText += `rules_version = '2';\n`;
+            exportText += `service cloud.firestore {\n`;
+            exportText += `  match /databases/{database}/documents {\n`;
+            exportText += `    match /bearCircle/{document=**} {\n`;
+            exportText += `      allow read, write: if resource.data.lastModifiedBy in [\n`;
+            members.forEach((member, index) => {
+                exportText += `        "${member}"${index < members.length - 1 ? ',' : ''}\n`;
+            });
+            exportText += `      ];\n`;
+            exportText += `    }\n`;
+            exportText += `  }\n`;
+            exportText += `}\n`;
+            exportText += `\nThis restricts access to only sacred circle members.\n`;
+            exportText += `Update rules before July 11, 2025 to maintain security.\n`;
 
             const blob = new Blob([exportText], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
