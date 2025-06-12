@@ -366,20 +366,23 @@
             box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
         }
         
-        /* New attendance-based color coding */
-        .date-option.attendance-excellent {
-            background: rgba(34, 197, 94, 0.3);
+        /* New color system for day attendance */
+        .date-option.attendance-green {
+            background: rgba(34, 197, 94, 0.2);
             border-color: rgba(34, 197, 94, 0.6);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
         }
         
-        .date-option.attendance-good {
-            background: rgba(147, 51, 234, 0.3);
+        .date-option.attendance-purple {
+            background: rgba(147, 51, 234, 0.2);
             border-color: rgba(147, 51, 234, 0.6);
+            box-shadow: 0 0 10px rgba(147, 51, 234, 0.3);
         }
         
-        .date-option.attendance-low {
-            background: rgba(249, 115, 22, 0.3);
-            border-color: rgba(249, 115, 22, 0.6);
+        .date-option.attendance-orange {
+            background: rgba(251, 146, 60, 0.2);
+            border-color: rgba(251, 146, 60, 0.6);
+            box-shadow: 0 0 10px rgba(251, 146, 60, 0.3);
         }
         
         .day-label {
@@ -453,6 +456,13 @@
         .randomize-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+        }
+        
+        .randomize-btn:disabled {
+            background: rgba(107, 114, 128, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .meeting-info {
@@ -1105,6 +1115,55 @@
             });
         }
 
+        // Updated function to calculate day attendance colors
+        function calculateDayAttendanceStatus(cardId, dayIndex) {
+            const data = scheduleData[cardId] || {};
+            const attendance = data.attendance || {};
+            
+            let yesCount = 0;
+            let yesOrMaybeCount = 0;
+            
+            Object.values(attendance).forEach(memberDays => {
+                if (typeof memberDays === 'object' && memberDays[dayIndex]) {
+                    const status = memberDays[dayIndex];
+                    if (status === 'yes') {
+                        yesCount++;
+                        yesOrMaybeCount++;
+                    } else if (status === 'maybe') {
+                        yesOrMaybeCount++;
+                    }
+                }
+            });
+            
+            // Green: 4+ people with "yes"
+            if (yesCount >= 4) {
+                return 'green';
+            }
+            // Purple: 4+ people with "yes" OR "maybe" (but less than 4 "yes")
+            else if (yesOrMaybeCount >= 4) {
+                return 'purple';
+            }
+            // Orange: Less than 4 people with "yes" OR "maybe"
+            else {
+                return 'orange';
+            }
+        }
+
+        // Updated function to get eligible members for role assignment
+        function getEligibleMembersForDay(cardId, dayIndex) {
+            const data = scheduleData[cardId] || {};
+            const attendance = data.attendance || {};
+            const eligible = [];
+            
+            Object.entries(attendance).forEach(([member, memberDays]) => {
+                if (typeof memberDays === 'object' && memberDays[dayIndex] === 'yes') {
+                    eligible.push(member);
+                }
+            });
+            
+            return eligible;
+        }
+
         // Confirmation modal functions
         function showConfirmation(title, message, action) {
             document.getElementById('modalTitle').textContent = title;
@@ -1128,7 +1187,7 @@
         function showRandomizeConfirmation(cardId) {
             showConfirmation(
                 'Randomize Roles',
-                'This will randomly reassign the host and discussion leader roles from people who said "Yes" on the selected date. Continue?',
+                'This will randomly assign host and discussion leader roles from members who said "Yes" on the selected gathering date. Continue?',
                 () => randomizeRoles(cardId)
             );
         }
@@ -1136,7 +1195,7 @@
         function showRandomizeAllConfirmation() {
             showConfirmation(
                 'Randomize All Roles',
-                'This will randomly reassign host and discussion leader roles for ALL moon gatherings from people who said "Yes" on each selected date. Continue?',
+                'This will randomly assign host and discussion leader roles for ALL moon gatherings based on each day\'s "Yes" responses. Continue?',
                 () => randomizeAllRoles()
             );
         }
@@ -1144,29 +1203,21 @@
         // Updated role assignment functions
         async function randomizeRoles(cardId) {
             const data = scheduleData[cardId] || {};
-            const selectedDateIndex = data.selectedDate;
+            const selectedDate = data.selectedDate;
             
-            if (selectedDateIndex === undefined) {
+            if (selectedDate === undefined) {
                 alert('Please select a gathering date first.');
                 return;
             }
             
-            // Get people who said "yes" for the selected date
-            const attendance = data.attendance || {};
-            const availableMembers = members.filter(member => {
-                const memberAttendance = attendance[member];
-                if (memberAttendance && typeof memberAttendance === 'object') {
-                    return memberAttendance[selectedDateIndex] === 'yes';
-                }
-                return false;
-            });
+            const eligibleMembers = getEligibleMembersForDay(cardId, selectedDate);
             
-            if (availableMembers.length < 2) {
-                alert('Need at least 2 people who said "Yes" for the selected date to assign roles.');
+            if (eligibleMembers.length < 2) {
+                alert(`Not enough members confirmed "Yes" for the selected date. Need at least 2, but only ${eligibleMembers.length} confirmed.`);
                 return;
             }
             
-            const shuffled = [...availableMembers].sort(() => Math.random() - 0.5);
+            const shuffled = [...eligibleMembers].sort(() => Math.random() - 0.5);
             data.host = shuffled[0];
             data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
             
@@ -1174,41 +1225,36 @@
         }
 
         async function randomizeAllRoles() {
-            if (members.length < 2) {
-                alert('You need at least 2 members to assign roles.');
-                return;
-            }
-            
             const newMoons = getNewMoonDates(currentYear);
-            let updatedScheduleData = { ...scheduleData };
+            let assignedCount = 0;
+            let skippedCount = 0;
             
             for (let index = 0; index < newMoons.length; index++) {
                 const cardId = `moon-${currentYear}-${index}`;
-                const data = updatedScheduleData[cardId] || {};
-                const selectedDateIndex = data.selectedDate;
+                const data = scheduleData[cardId] || {};
+                const selectedDate = data.selectedDate;
                 
-                if (selectedDateIndex !== undefined) {
-                    // Get people who said "yes" for the selected date
-                    const attendance = data.attendance || {};
-                    const availableMembers = members.filter(member => {
-                        const memberAttendance = attendance[member];
-                        if (memberAttendance && typeof memberAttendance === 'object') {
-                            return memberAttendance[selectedDateIndex] === 'yes';
-                        }
-                        return false;
-                    });
-                    
-                    if (availableMembers.length >= 2) {
-                        const shuffled = [...availableMembers].sort(() => Math.random() - 0.5);
-                        data.host = shuffled[0];
-                        data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
-                    }
+                if (selectedDate === undefined) {
+                    skippedCount++;
+                    continue;
                 }
                 
-                updatedScheduleData[cardId] = data;
+                const eligibleMembers = getEligibleMembersForDay(cardId, selectedDate);
+                
+                if (eligibleMembers.length < 2) {
+                    skippedCount++;
+                    continue;
+                }
+                
+                const shuffled = [...eligibleMembers].sort(() => Math.random() - 0.5);
+                data.host = shuffled[0];
+                data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
+                
+                await updateFirebaseField(`schedule-${currentYear}`, cardId, data);
+                assignedCount++;
             }
             
-            await saveToFirebase(`schedule-${currentYear}`, updatedScheduleData);
+            alert(`Roles assigned for ${assignedCount} gatherings. ${skippedCount} gatherings skipped due to no selected date or insufficient "Yes" responses.`);
         }
 
         // Updated attendance functions
@@ -1218,35 +1264,15 @@
             if (!data.attendance[member]) data.attendance[member] = {};
             
             data.attendance[member][dayIndex] = status;
-            
             await updateFirebaseField(`schedule-${currentYear}`, cardId, data);
-        }
-
-        // Updated attendance calculation
-        function getAttendanceForDay(cardId, dayIndex) {
-            const data = scheduleData[cardId] || {};
-            const attendance = data.attendance || {};
-            
-            let yesCount = 0;
-            let maybeCount = 0;
-            
-            Object.values(attendance).forEach(memberDays => {
-                if (typeof memberDays === 'object') {
-                    const dayStatus = memberDays[dayIndex];
-                    if (dayStatus === 'yes') yesCount++;
-                    else if (dayStatus === 'maybe') maybeCount++;
-                }
-            });
-            
-            return { yesCount, maybeCount, totalInterested: yesCount + maybeCount };
         }
 
         function updateAttendanceDisplay(cardId) {
             const data = scheduleData[cardId] || {};
             const attendance = data.attendance || {};
             
-            // Count people who said yes to at least one day
-            const attendingCount = Object.values(attendance).filter(memberDays => {
+            // Count members who said yes to any day
+            const membersAttending = Object.values(attendance).filter(memberDays => {
                 if (typeof memberDays === 'object') {
                     return Object.values(memberDays).some(status => status === 'yes');
                 }
@@ -1254,31 +1280,37 @@
             }).length;
             
             const countElement = document.querySelector(`[data-card="${cardId}"] .attendance-count`);
+            
             if (countElement) {
-                countElement.textContent = `${attendingCount} members confirmed attending at least one day`;
-                countElement.className = `attendance-count ${attendingCount >= 4 ? 'status-yes' : 'status-maybe'}`;
+                countElement.textContent = `${membersAttending} members confirmed attending at least one day`;
+                countElement.className = `attendance-count ${membersAttending >= 4 ? 'status-yes' : 'status-maybe'}`;
             }
             
-            // Update date option colors based on daily attendance
+            // Update date option colors based on new system
             const card = document.querySelector(`[data-card="${cardId}"]`);
             if (card) {
                 const dateOptions = card.querySelectorAll('.date-option');
                 dateOptions.forEach((option, dayIndex) => {
-                    const dayAttendance = getAttendanceForDay(cardId, dayIndex);
-                    
-                    // Remove existing attendance classes
-                    option.classList.remove('attendance-excellent', 'attendance-good', 'attendance-low');
-                    
-                    // Apply new color coding
-                    if (dayAttendance.yesCount >= 4) {
-                        option.classList.add('attendance-excellent'); // Green - 4+ yes
-                    } else if (dayAttendance.totalInterested >= 4) {
-                        option.classList.add('attendance-good'); // Purple - 4+ yes/maybe combined
-                    } else if (dayAttendance.totalInterested > 0) {
-                        option.classList.add('attendance-low'); // Orange - some interest but less than 4
-                    }
-                    // No class = gray/default for no responses
+                    option.classList.remove('attendance-green', 'attendance-purple', 'attendance-orange');
+                    const status = calculateDayAttendanceStatus(cardId, dayIndex);
+                    option.classList.add(`attendance-${status}`);
                 });
+            }
+            
+            // Update randomize button state
+            const randomizeBtn = card?.querySelector('.randomize-btn');
+            if (randomizeBtn) {
+                const selectedDate = data.selectedDate;
+                if (selectedDate !== undefined) {
+                    const eligibleMembers = getEligibleMembersForDay(cardId, selectedDate);
+                    randomizeBtn.disabled = eligibleMembers.length < 2;
+                    randomizeBtn.textContent = eligibleMembers.length < 2 
+                        ? `🎲 Need ${2 - eligibleMembers.length} more "Yes" responses for selected date`
+                        : '🎲 Randomize Roles (Fair Rotation)';
+                } else {
+                    randomizeBtn.disabled = true;
+                    randomizeBtn.textContent = '🎲 Select gathering date first';
+                }
             }
         }
 
@@ -1300,8 +1332,8 @@
                 const fiveDayWindow = getFiveDayWindow(date);
                 const attendance = savedData.attendance || {};
                 
-                // Count people who said yes to at least one day
-                const attendingCount = Object.values(attendance).filter(memberDays => {
+                // Count members who said yes to any day
+                const membersAttending = Object.values(attendance).filter(memberDays => {
                     if (typeof memberDays === 'object') {
                         return Object.values(memberDays).some(status => status === 'yes');
                     }
@@ -1323,19 +1355,9 @@
                         <label>Select Sacred Gathering Date:</label>
                         <div class="date-options">
                             ${fiveDayWindow.map((day, dayIndex) => {
-                                const dayAttendance = getAttendanceForDay(cardId, dayIndex);
-                                let attendanceClass = '';
-                                
-                                if (dayAttendance.yesCount >= 4) {
-                                    attendanceClass = 'attendance-excellent';
-                                } else if (dayAttendance.totalInterested >= 4) {
-                                    attendanceClass = 'attendance-good';
-                                } else if (dayAttendance.totalInterested > 0) {
-                                    attendanceClass = 'attendance-low';
-                                }
-                                
+                                const status = calculateDayAttendanceStatus(cardId, dayIndex);
                                 return `
-                                    <div class="date-option ${savedData.selectedDate === dayIndex ? 'selected' : ''} ${attendanceClass}"
+                                    <div class="date-option ${savedData.selectedDate === dayIndex ? 'selected' : ''} attendance-${status}"
                                          onclick="selectDate('${cardId}', ${dayIndex})">
                                         <div class="day-label">${day.label}</div>
                                         <div class="date-num">${day.date.getDate()}</div>
@@ -1363,12 +1385,11 @@
                         </div>
                         <button class="randomize-btn" onclick="showRandomizeConfirmation('${cardId}')">🎲 Randomize Roles (Fair Rotation)</button>
                         <div style="margin-top: 10px; padding: 10px; background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
-                            <label style="font-size: 11px; color: #F59E0B;">💡 Color Legend:</label>
+                            <label style="font-size: 11px; color: #F59E0B;">💡 How Daily Attendance Works:</label>
                             <p style="font-size: 10px; color: #D1D5DB; margin: 5px 0;">
-                                🟢 Green: 4+ people said "Yes" for this day<br>
-                                🟣 Purple: 4+ people said "Yes" or "Maybe" combined<br>
-                                🟠 Orange: Some interest but less than 4 people<br>
-                                ⚪ Gray: No responses yet
+                                • Each member sets their status for each day in the 5-day window<br>
+                                • Green days: 4+ "Yes" responses | Purple days: 4+ "Yes"+"Maybe" | Orange days: Less than 4 total<br>
+                                • Roles are randomly assigned from members who said "Yes" on the selected gathering date
                             </p>
                         </div>
                     </div>
@@ -1427,8 +1448,8 @@
                             }).join('')}
                         </div>
                         <div class="attendance-summary">
-                            <div class="attendance-count ${attendingCount >= 4 ? 'status-yes' : 'status-maybe'}">
-                                ${attendingCount} members confirmed attending at least one day
+                            <div class="attendance-count ${membersAttending >= 4 ? 'status-yes' : 'status-maybe'}">
+                                ${membersAttending} members confirmed attending at least one day
                             </div>
                             <div style="margin-top: 8px; font-size: 10px; color: #9CA3AF;">
                                 💡 Role assignment uses members who said "Yes" on the selected gathering date
@@ -1480,8 +1501,8 @@
                 const selectedDate = data.selectedDate !== undefined ? fiveDayWindow[data.selectedDate] : null;
                 const attendance = data.attendance || {};
                 
-                // Count people who said yes to at least one day
-                const attendingCount = Object.values(attendance).filter(memberDays => {
+                // Count members who said yes to any day
+                const membersAttending = Object.values(attendance).filter(memberDays => {
                     if (typeof memberDays === 'object') {
                         return Object.values(memberDays).some(status => status === 'yes');
                     }
@@ -1495,7 +1516,7 @@
                 exportText += `🏠 Host: ${data.host || 'TBD'}\n`;
                 exportText += `🗣️ Circle Leader: ${data.leader || 'TBD'}\n`;
                 exportText += `✨ Medicine Theme: ${data.notes || 'TBD'}\n`;
-                exportText += `👥 Circle Members Attending: ${attendingCount}\n`;
+                exportText += `👥 Circle Members Attending: ${membersAttending}\n`;
                 
                 if (Object.keys(attendance).length > 0) {
                     exportText += `\n🔥 Sacred Circle Daily Attendance:\n`;
@@ -1516,7 +1537,6 @@
             });
 
             exportText += `\nSacred Circle Members: ${members.join(', ')}\n`;
-            exportText += `\nMay each gathering bring healing, wisdom, and connection to all who join the circle.\n`;
             exportText += `\nGenerated by: ${currentUser} on ${new Date().toLocaleDateString()}\n`;
 
             const blob = new Blob([exportText], { type: 'text/plain' });
