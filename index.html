@@ -496,10 +496,11 @@
         
         .attendance-item {
             background: rgba(255,255,255,0.05);
-            padding: 10px;
+            padding: 12px;
             border-radius: 8px;
             font-size: 12px;
             border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 8px;
         }
         
         .attendance-item select {
@@ -511,6 +512,11 @@
             font-size: 11px;
             width: 100%;
             margin-top: 5px;
+        }
+        
+        .attendance-item input[type="checkbox"] {
+            transform: scale(1.1);
+            margin-right: 5px;
         }
         
         .status-attending { color: #22C55E; }
@@ -704,7 +710,7 @@
                 <div class="member-management">
                     <input type="text" id="newMemberName" class="member-input" placeholder="Add sacred circle member...">
                     <button class="btn btn-success" onclick="addMember()">Add Member</button>
-                    <button class="btn btn-warning" onclick="showRandomizeAllConfirmation()">🎲 Randomize All Roles</button>
+                    <button class="btn btn-warning" onclick="showRandomizeAllConfirmation()">🎲 Randomize All Roles (Fair Rotation)</button>
                 </div>
             </div>
             
@@ -816,12 +822,30 @@
         }
 
         function showMainApp() {
+            // Check if user is in member list (after members are loaded)
+            if (members.length > 0 && !members.includes(currentUser)) {
+                alert(`Welcome ${currentUser}! You've been added to the sacred circle member list.`);
+                // Auto-add them to members if they're not already there
+                addUserToMembers();
+            }
+            
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             document.getElementById('currentUserName').textContent = currentUser;
             
             // Initialize Firebase listeners
             initializeFirebaseListeners();
+        }
+
+        async function addUserToMembers() {
+            if (!members.includes(currentUser)) {
+                const updatedMembers = [...members, currentUser];
+                await saveToFirebase('members', { 
+                    list: updatedMembers,
+                    addedBy: currentUser,
+                    dateAdded: new Date().toISOString()
+                });
+            }
         }
 
         // Firebase functions
@@ -1153,7 +1177,10 @@
                 const savedData = scheduleData[cardId] || {};
                 const fiveDayWindow = getFiveDayWindow(date);
                 const attendance = savedData.attendance || {};
-                const attendingCount = Object.values(attendance).filter(status => status === 'attending').length;
+                const attendingCount = Object.values(attendance).filter(memberData => {
+                    const overall = typeof memberData === 'string' ? memberData : memberData.overall;
+                    return overall === 'attending';
+                }).length;
 
                 const card = document.createElement('div');
                 card.className = 'moon-card';
@@ -1195,7 +1222,7 @@
                                 ${members.map(member => `<option value="${member}" ${savedData.leader === member ? 'selected' : ''}>${member}</option>`).join('')}
                             </select>
                         </div>
-                        <button class="randomize-btn" onclick="showRandomizeConfirmation('${cardId}')">🎲 Randomize Roles</button>
+                        <button class="randomize-btn" onclick="showRandomizeConfirmation('${cardId}')">🎲 Randomize Roles (Fair Rotation)</button>
                     </div>
                     
                     <div class="meeting-info">
@@ -1220,25 +1247,54 @@
                     </div>
                     
                     <div class="attendance-section">
-                        <label>Circle Attendance:</label>
+                        <label>Daily Attendance Confirmation:</label>
+                        <p style="font-size: 11px; color: #9CA3AF; margin: 5px 0;">Each member can confirm which days they're available in the 5-day window</p>
                         <div class="attendance-list">
                             ${members.map(member => {
-                                const memberAttendance = attendance[member] || 'maybe';
+                                const memberAttendance = attendance[member] || {};
+                                const overallStatus = memberAttendance.overall || 'maybe';
                                 return `
                                     <div class="attendance-item">
                                         <strong>${member}</strong>
-                                        <select class="status-${memberAttendance}" 
-                                                onchange="updateAttendance('${cardId}', '${member}', this.value); this.className='status-' + this.value;">
-                                            <option value="attending" ${memberAttendance === 'attending' ? 'selected' : ''}>✓ Attending</option>
-                                            <option value="maybe" ${memberAttendance === 'maybe' ? 'selected' : ''}>? Maybe</option>
-                                            <option value="not-attending" ${memberAttendance === 'not-attending' ? 'selected' : ''}>✗ Cannot Attend</option>
-                                        </select>
+                                        <div style="margin: 8px 0;">
+                                            <label style="font-size: 10px;">Overall Status:</label>
+                                            <select class="status-${overallStatus}" 
+                                                    onchange="updateOverallAttendance('${cardId}', '${member}', this.value); this.className='status-' + this.value;">
+                                                <option value="attending" ${overallStatus === 'attending' ? 'selected' : ''}>✓ Planning to Attend</option>
+                                                <option value="maybe" ${overallStatus === 'maybe' ? 'selected' : ''}>? Maybe</option>
+                                                <option value="not-attending" ${overallStatus === 'not-attending' ? 'selected' : ''}>✗ Cannot Attend</option>
+                                            </select>
+                                        </div>
+                                        ${overallStatus === 'attending' || overallStatus === 'maybe' ? `
+                                            <div style="margin-top: 8px;">
+                                                <label style="font-size: 10px;">Available Days:</label>
+                                                ${fiveDayWindow.map((day, dayIndex) => {
+                                                    const dayAvailable = memberAttendance.days && memberAttendance.days[dayIndex];
+                                                    return `
+                                                        <div style="display: flex; align-items: center; margin: 2px 0; font-size: 10px;">
+                                                            <input type="checkbox" 
+                                                                   ${dayAvailable ? 'checked' : ''} 
+                                                                   onchange="updateDayAttendance('${cardId}', '${member}', ${dayIndex}, this.checked)"
+                                                                   style="margin-right: 5px;">
+                                                            <span>${day.date.getDate()} - ${day.label}</span>
+                                                        </div>
+                                                    `;
+                                                }).join('')}
+                                            </div>
+                                        ` : ''}
                                     </div>
                                 `;
                             }).join('')}
                         </div>
                         <div class="attendance-count ${attendingCount >= 4 ? 'status-attending' : 'status-maybe'}">
-                            ${attendingCount} confirmed attending
+                            ${attendingCount} confirmed attending overall
+                        </div>
+                        <div style="margin-top: 10px; padding: 10px; background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
+                            <label style="font-size: 11px; color: #F59E0B;">💡 Role Assignment Tip:</label>
+                            <p style="font-size: 10px; color: #D1D5DB; margin: 5px 0;">
+                                Randomize Roles will only assign host/leader roles to members who have confirmed "Planning to Attend". 
+                                The system ensures fair rotation - everyone gets a chance to host and lead before anyone repeats.
+                            </p>
                         </div>
                     </div>
                 `;
@@ -1274,7 +1330,7 @@
             initializeFirebaseListeners();
         }
 
-        function exportSchedule() {
+        async function exportSchedule() {
             const newMoons = getNewMoonDates(currentYear);
             let exportText = `Big Bear Medicine Gathering - Sacred Moon Schedule ${currentYear}\n`;
             exportText += '🌟'.repeat(70) + '\n\n';
@@ -1298,9 +1354,24 @@
                 
                 if (Object.keys(attendance).length > 0) {
                     exportText += `\n🔥 Sacred Circle Attendance:\n`;
-                    Object.entries(attendance).forEach(([member, status]) => {
-                        const statusIcon = status === 'attending' ? '✓' : status === 'maybe' ? '?' : '✗';
-                        exportText += `   ${statusIcon} ${member}\n`;
+                    Object.entries(attendance).forEach(([member, memberData]) => {
+                        const overall = typeof memberData === 'string' ? memberData : memberData.overall;
+                        const statusIcon = overall === 'attending' ? '✓' : overall === 'maybe' ? '?' : '✗';
+                        exportText += `   ${statusIcon} ${member} - ${overall}\n`;
+                        
+                        // Add day-specific availability if they're attending/maybe
+                        if ((overall === 'attending' || overall === 'maybe') && memberData.days) {
+                            const availableDays = [];
+                            Object.entries(memberData.days).forEach(([dayIndex, available]) => {
+                                if (available) {
+                                    const dayInfo = fiveDayWindow[parseInt(dayIndex)];
+                                    availableDays.push(`${dayInfo.date.getDate()} (${dayInfo.label})`);
+                                }
+                            });
+                            if (availableDays.length > 0) {
+                                exportText += `     Available: ${availableDays.join(', ')}\n`;
+                            }
+                        }
                     });
                 }
                 
@@ -1308,6 +1379,20 @@
             });
 
             exportText += `\nSacred Circle Members: ${members.join(', ')}\n`;
+            
+            // Add role rotation history
+            try {
+                const roleHistory = await getRoleHistory();
+                if (Object.keys(roleHistory).length > 0) {
+                    exportText += `\n🔄 Role Rotation History:\n`;
+                    Object.entries(roleHistory).forEach(([member, roles]) => {
+                        exportText += `   ${member}: Hosted ${roles.host || 0} times, Led ${roles.leader || 0} times\n`;
+                    });
+                }
+            } catch (error) {
+                console.log('Could not load role history for export');
+            }
+            
             exportText += `\nMay each gathering bring healing, wisdom, and connection to all who join the circle.\n`;
             exportText += `\nGenerated by: ${currentUser} on ${new Date().toLocaleDateString()}\n`;
             exportText += `\n--- FIREBASE SECURITY SETUP ---\n`;
