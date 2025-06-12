@@ -1,11 +1,4 @@
-<div style="margin-top: 10px; padding: 10px; background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
-                            <label style="font-size: 11px; color: #F59E0B;">💡 How Daily Attendance Works:</label>
-                            <p style="font-size: 10px; color: #D1D5DB; margin: 5px 0;">
-                                • Each member sets their status for each day in the 5-day window<br>
-                                • Select gathering date above, then randomize roles using attendees for that specific date<br>
-                                • Fair rotation ensures everyone gets equal opportunities to host and lead
-                            </p>
-                        </div><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -373,14 +366,20 @@
             box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
         }
         
-        .date-option.attendance-low {
-            background: rgba(234, 88, 12, 0.2);
-            border-color: rgba(234, 88, 12, 0.5);
+        /* New attendance-based color coding */
+        .date-option.attendance-excellent {
+            background: rgba(34, 197, 94, 0.3);
+            border-color: rgba(34, 197, 94, 0.6);
         }
         
         .date-option.attendance-good {
-            background: rgba(34, 197, 94, 0.2);
-            border-color: rgba(34, 197, 94, 0.5);
+            background: rgba(147, 51, 234, 0.3);
+            border-color: rgba(147, 51, 234, 0.6);
+        }
+        
+        .date-option.attendance-low {
+            background: rgba(249, 115, 22, 0.3);
+            border-color: rgba(249, 115, 22, 0.6);
         }
         
         .day-label {
@@ -559,9 +558,9 @@
             text-align: center;
         }
         
-        .status-attending { color: #22C55E; }
+        .status-yes { color: #22C55E; }
         .status-maybe { color: #F59E0B; }
-        .status-not-attending { color: #EF4444; }
+        .status-no { color: #EF4444; }
         
         label {
             display: block;
@@ -1129,7 +1128,7 @@
         function showRandomizeConfirmation(cardId) {
             showConfirmation(
                 'Randomize Roles',
-                'This will randomly reassign the host and discussion leader roles. Continue?',
+                'This will randomly reassign the host and discussion leader roles from people who said "Yes" on the selected date. Continue?',
                 () => randomizeRoles(cardId)
             );
         }
@@ -1137,22 +1136,41 @@
         function showRandomizeAllConfirmation() {
             showConfirmation(
                 'Randomize All Roles',
-                'This will randomly reassign host and discussion leader roles for ALL moon gatherings. Continue?',
+                'This will randomly reassign host and discussion leader roles for ALL moon gatherings from people who said "Yes" on each selected date. Continue?',
                 () => randomizeAllRoles()
             );
         }
 
-        // Role assignment functions
+        // Updated role assignment functions
         async function randomizeRoles(cardId) {
-            if (members.length < 2) return;
-            
-            const shuffled = [...members].sort(() => Math.random() - 0.5);
             const data = scheduleData[cardId] || {};
+            const selectedDateIndex = data.selectedDate;
             
+            if (selectedDateIndex === undefined) {
+                alert('Please select a gathering date first.');
+                return;
+            }
+            
+            // Get people who said "yes" for the selected date
+            const attendance = data.attendance || {};
+            const availableMembers = members.filter(member => {
+                const memberAttendance = attendance[member];
+                if (memberAttendance && typeof memberAttendance === 'object') {
+                    return memberAttendance[selectedDateIndex] === 'yes';
+                }
+                return false;
+            });
+            
+            if (availableMembers.length < 2) {
+                alert('Need at least 2 people who said "Yes" for the selected date to assign roles.');
+                return;
+            }
+            
+            const shuffled = [...availableMembers].sort(() => Math.random() - 0.5);
             data.host = shuffled[0];
             data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
             
-            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
+            await updateFirebaseField(`schedule-${currentYear}`, cardId, data);
         }
 
         async function randomizeAllRoles() {
@@ -1162,50 +1180,104 @@
             }
             
             const newMoons = getNewMoonDates(currentYear);
+            let updatedScheduleData = { ...scheduleData };
+            
             for (let index = 0; index < newMoons.length; index++) {
                 const cardId = `moon-${currentYear}-${index}`;
-                const shuffled = [...members].sort(() => Math.random() - 0.5);
-                const data = scheduleData[cardId] || {};
+                const data = updatedScheduleData[cardId] || {};
+                const selectedDateIndex = data.selectedDate;
                 
-                data.host = shuffled[0];
-                data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
+                if (selectedDateIndex !== undefined) {
+                    // Get people who said "yes" for the selected date
+                    const attendance = data.attendance || {};
+                    const availableMembers = members.filter(member => {
+                        const memberAttendance = attendance[member];
+                        if (memberAttendance && typeof memberAttendance === 'object') {
+                            return memberAttendance[selectedDateIndex] === 'yes';
+                        }
+                        return false;
+                    });
+                    
+                    if (availableMembers.length >= 2) {
+                        const shuffled = [...availableMembers].sort(() => Math.random() - 0.5);
+                        data.host = shuffled[0];
+                        data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
+                    }
+                }
                 
-                await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
+                updatedScheduleData[cardId] = data;
             }
+            
+            await saveToFirebase(`schedule-${currentYear}`, updatedScheduleData);
         }
 
-        // Attendance functions
-        async function updateAttendance(cardId, member, status) {
+        // Updated attendance functions
+        async function updateDayStatus(cardId, member, dayIndex, status) {
             const data = scheduleData[cardId] || {};
             if (!data.attendance) data.attendance = {};
+            if (!data.attendance[member]) data.attendance[member] = {};
             
-            data.attendance[member] = status;
-            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
+            data.attendance[member][dayIndex] = status;
+            
+            await updateFirebaseField(`schedule-${currentYear}`, cardId, data);
+        }
+
+        // Updated attendance calculation
+        function getAttendanceForDay(cardId, dayIndex) {
+            const data = scheduleData[cardId] || {};
+            const attendance = data.attendance || {};
+            
+            let yesCount = 0;
+            let maybeCount = 0;
+            
+            Object.values(attendance).forEach(memberDays => {
+                if (typeof memberDays === 'object') {
+                    const dayStatus = memberDays[dayIndex];
+                    if (dayStatus === 'yes') yesCount++;
+                    else if (dayStatus === 'maybe') maybeCount++;
+                }
+            });
+            
+            return { yesCount, maybeCount, totalInterested: yesCount + maybeCount };
         }
 
         function updateAttendanceDisplay(cardId) {
             const data = scheduleData[cardId] || {};
             const attendance = data.attendance || {};
             
-            const attendingCount = Object.values(attendance).filter(status => status === 'attending').length;
-            const countElement = document.querySelector(`[data-card="${cardId}"] .attendance-count`);
+            // Count people who said yes to at least one day
+            const attendingCount = Object.values(attendance).filter(memberDays => {
+                if (typeof memberDays === 'object') {
+                    return Object.values(memberDays).some(status => status === 'yes');
+                }
+                return false;
+            }).length;
             
+            const countElement = document.querySelector(`[data-card="${cardId}"] .attendance-count`);
             if (countElement) {
-                countElement.textContent = `${attendingCount} confirmed attending`;
-                countElement.className = `attendance-count ${attendingCount >= 4 ? 'status-attending' : 'status-maybe'}`;
+                countElement.textContent = `${attendingCount} members confirmed attending at least one day`;
+                countElement.className = `attendance-count ${attendingCount >= 4 ? 'status-yes' : 'status-maybe'}`;
             }
             
-            // Update date option colors
+            // Update date option colors based on daily attendance
             const card = document.querySelector(`[data-card="${cardId}"]`);
             if (card) {
                 const dateOptions = card.querySelectorAll('.date-option');
-                dateOptions.forEach(option => {
-                    option.classList.remove('attendance-low', 'attendance-good');
-                    if (attendingCount >= 4) {
-                        option.classList.add('attendance-good');
-                    } else if (attendingCount > 0) {
-                        option.classList.add('attendance-low');
+                dateOptions.forEach((option, dayIndex) => {
+                    const dayAttendance = getAttendanceForDay(cardId, dayIndex);
+                    
+                    // Remove existing attendance classes
+                    option.classList.remove('attendance-excellent', 'attendance-good', 'attendance-low');
+                    
+                    // Apply new color coding
+                    if (dayAttendance.yesCount >= 4) {
+                        option.classList.add('attendance-excellent'); // Green - 4+ yes
+                    } else if (dayAttendance.totalInterested >= 4) {
+                        option.classList.add('attendance-good'); // Purple - 4+ yes/maybe combined
+                    } else if (dayAttendance.totalInterested > 0) {
+                        option.classList.add('attendance-low'); // Orange - some interest but less than 4
                     }
+                    // No class = gray/default for no responses
                 });
             }
         }
@@ -1213,7 +1285,7 @@
         async function updateRole(cardId, role, member) {
             const data = scheduleData[cardId] || {};
             data[role] = member;
-            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
+            await updateFirebaseField(`schedule-${currentYear}`, cardId, data);
         }
 
         // Schedule generation
@@ -1227,6 +1299,8 @@
                 const savedData = scheduleData[cardId] || {};
                 const fiveDayWindow = getFiveDayWindow(date);
                 const attendance = savedData.attendance || {};
+                
+                // Count people who said yes to at least one day
                 const attendingCount = Object.values(attendance).filter(memberDays => {
                     if (typeof memberDays === 'object') {
                         return Object.values(memberDays).some(status => status === 'yes');
@@ -1248,14 +1322,27 @@
                     <div class="date-selection">
                         <label>Select Sacred Gathering Date:</label>
                         <div class="date-options">
-                            ${fiveDayWindow.map((day, dayIndex) => `
-                                <div class="date-option ${savedData.selectedDate === dayIndex ? 'selected' : ''} ${attendingCount >= 4 ? 'attendance-good' : attendingCount > 0 ? 'attendance-low' : ''}"
-                                     onclick="selectDate('${cardId}', ${dayIndex})">
-                                    <div class="day-label">${day.label}</div>
-                                    <div class="date-num">${day.date.getDate()}</div>
-                                    <div style="font-size: 10px;">${day.date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                                </div>
-                            `).join('')}
+                            ${fiveDayWindow.map((day, dayIndex) => {
+                                const dayAttendance = getAttendanceForDay(cardId, dayIndex);
+                                let attendanceClass = '';
+                                
+                                if (dayAttendance.yesCount >= 4) {
+                                    attendanceClass = 'attendance-excellent';
+                                } else if (dayAttendance.totalInterested >= 4) {
+                                    attendanceClass = 'attendance-good';
+                                } else if (dayAttendance.totalInterested > 0) {
+                                    attendanceClass = 'attendance-low';
+                                }
+                                
+                                return `
+                                    <div class="date-option ${savedData.selectedDate === dayIndex ? 'selected' : ''} ${attendanceClass}"
+                                         onclick="selectDate('${cardId}', ${dayIndex})">
+                                        <div class="day-label">${day.label}</div>
+                                        <div class="date-num">${day.date.getDate()}</div>
+                                        <div style="font-size: 10px;">${day.date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                     
@@ -1276,11 +1363,12 @@
                         </div>
                         <button class="randomize-btn" onclick="showRandomizeConfirmation('${cardId}')">🎲 Randomize Roles (Fair Rotation)</button>
                         <div style="margin-top: 10px; padding: 10px; background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
-                            <label style="font-size: 11px; color: #F59E0B;">💡 How Daily Attendance Works:</label>
+                            <label style="font-size: 11px; color: #F59E0B;">💡 Color Legend:</label>
                             <p style="font-size: 10px; color: #D1D5DB; margin: 5px 0;">
-                                • Each member sets their status for each day in the 5-day window<br>
-                                • Select gathering date above, then randomize roles using attendees for that specific date<br>
-                                • Fair rotation ensures everyone gets equal opportunities to host and lead
+                                🟢 Green: 4+ people said "Yes" for this day<br>
+                                🟣 Purple: 4+ people said "Yes" or "Maybe" combined<br>
+                                🟠 Orange: Some interest but less than 4 people<br>
+                                ⚪ Gray: No responses yet
                             </p>
                         </div>
                     </div>
@@ -1326,9 +1414,9 @@
                                                         </div>
                                                         <select class="day-status-select status-${dayStatus}" 
                                                                 onchange="updateDayStatus('${cardId}', '${member}', ${dayIndex}, this.value); this.className='day-status-select status-' + this.value;">
-                                                            <option value="attending" ${dayStatus === 'attending' ? 'selected' : ''}>✓ Attending</option>
+                                                            <option value="yes" ${dayStatus === 'yes' ? 'selected' : ''}>✓ Yes</option>
                                                             <option value="maybe" ${dayStatus === 'maybe' ? 'selected' : ''}>? Maybe</option>
-                                                            <option value="not-attending" ${dayStatus === 'not-attending' ? 'selected' : ''}>✗ Cannot Attend</option>
+                                                            <option value="no" ${dayStatus === 'no' ? 'selected' : ''}>✗ No</option>
                                                         </select>
                                                     </div>
                                                 `;
@@ -1339,11 +1427,11 @@
                             }).join('')}
                         </div>
                         <div class="attendance-summary">
-                            <div class="attendance-count ${attendingCount >= 4 ? 'status-attending' : 'status-maybe'}">
+                            <div class="attendance-count ${attendingCount >= 4 ? 'status-yes' : 'status-maybe'}">
                                 ${attendingCount} members confirmed attending at least one day
                             </div>
                             <div style="margin-top: 8px; font-size: 10px; color: #9CA3AF;">
-                                💡 Role assignment uses members who are "Attending" on the selected gathering date
+                                💡 Role assignment uses members who said "Yes" on the selected gathering date
                             </div>
                         </div>
                     </div>
@@ -1359,13 +1447,13 @@
         async function selectDate(cardId, dateIndex) {
             const data = scheduleData[cardId] || {};
             data.selectedDate = dateIndex;
-            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
+            await updateFirebaseField(`schedule-${currentYear}`, cardId, data);
         }
 
         async function saveDataField(cardId, field, value) {
             const data = scheduleData[cardId] || {};
             data[field] = value;
-            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
+            await updateFirebaseField(`schedule-${currentYear}`, cardId, data);
         }
 
         function changeYear(delta) {
@@ -1391,7 +1479,14 @@
                 const fiveDayWindow = getFiveDayWindow(date);
                 const selectedDate = data.selectedDate !== undefined ? fiveDayWindow[data.selectedDate] : null;
                 const attendance = data.attendance || {};
-                const attendingCount = Object.values(attendance).filter(status => status === 'attending').length;
+                
+                // Count people who said yes to at least one day
+                const attendingCount = Object.values(attendance).filter(memberDays => {
+                    if (typeof memberDays === 'object') {
+                        return Object.values(memberDays).some(status => status === 'yes');
+                    }
+                    return false;
+                }).length;
                 
                 exportText += `🌑 ${date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} New Moon Gathering\n`;
                 exportText += `📅 Sacred Date: ${selectedDate ? formatLongDate(selectedDate.date) : 'TBD'}\n`;
@@ -1421,38 +1516,8 @@
             });
 
             exportText += `\nSacred Circle Members: ${members.join(', ')}\n`;
-            
-            // Add role rotation history
-            try {
-                const roleHistory = await getRoleHistory();
-                if (Object.keys(roleHistory).length > 0) {
-                    exportText += `\n🔄 Role Rotation History:\n`;
-                    Object.entries(roleHistory).forEach(([member, roles]) => {
-                        exportText += `   ${member}: Hosted ${roles.host || 0} times, Led ${roles.leader || 0} times\n`;
-                    });
-                }
-            } catch (error) {
-                console.log('Could not load role history for export');
-            }
-            
             exportText += `\nMay each gathering bring healing, wisdom, and connection to all who join the circle.\n`;
             exportText += `\nGenerated by: ${currentUser} on ${new Date().toLocaleDateString()}\n`;
-            exportText += `\n--- FIREBASE SECURITY SETUP ---\n`;
-            exportText += `To secure your sacred circle data, update Firestore Rules with:\n\n`;
-            exportText += `rules_version = '2';\n`;
-            exportText += `service cloud.firestore {\n`;
-            exportText += `  match /databases/{database}/documents {\n`;
-            exportText += `    match /bearCircle/{document=**} {\n`;
-            exportText += `      allow read, write: if resource.data.lastModifiedBy in [\n`;
-            members.forEach((member, index) => {
-                exportText += `        "${member}"${index < members.length - 1 ? ',' : ''}\n`;
-            });
-            exportText += `      ];\n`;
-            exportText += `    }\n`;
-            exportText += `  }\n`;
-            exportText += `}\n`;
-            exportText += `\nThis restricts access to only sacred circle members.\n`;
-            exportText += `Update rules before July 11, 2025 to maintain security.\n`;
 
             const blob = new Blob([exportText], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
