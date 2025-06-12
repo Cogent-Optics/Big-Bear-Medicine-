@@ -1229,7 +1229,7 @@
                 const attendance = savedData.attendance || {};
                 const attendingCount = Object.values(attendance).filter(memberDays => {
                     if (typeof memberDays === 'object') {
-                        return Object.values(memberDays).some(status => status === 'attending');
+                        return Object.values(memberDays).some(status => status === 'yes');
                     }
                     return false;
                 }).length;
@@ -1409,8 +1409,9 @@
                         if (typeof memberDays === 'object') {
                             fiveDayWindow.forEach((day, dayIndex) => {
                                 const dayStatus = memberDays[dayIndex] || 'maybe';
-                                const statusIcon = dayStatus === 'attending' ? '✓' : dayStatus === 'maybe' ? '?' : '✗';
-                                exportText += `     ${day.date.getDate()} (${day.label}): ${statusIcon} ${dayStatus}\n`;
+                                const statusIcon = dayStatus === 'yes' ? '✓' : dayStatus === 'maybe' ? '?' : '✗';
+                                const statusText = dayStatus === 'yes' ? 'Yes' : dayStatus === 'maybe' ? 'Maybe' : 'No';
+                                exportText += `     ${day.date.getDate()} (${day.label}): ${statusIcon} ${statusText}\n`;
                             });
                         }
                     });
