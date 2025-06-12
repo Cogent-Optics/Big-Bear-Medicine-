@@ -731,7 +731,7 @@
             <p style="color: #9CA3AF; margin-bottom: 30px;">Enter your name to join the sacred circle</p>
             
             <input type="text" id="userNameInput" class="login-input" placeholder="Your Name" maxlength="30">
-            <button class="login-btn" onclick="joinCircle()">Join Sacred Circle</button>
+            <button class="login-btn" onclick="joinCircle()" id="joinCircleBtn">Join Sacred Circle</button>
             
             <div class="login-description">
                 A lunar-aligned scheduling system for our sacred men's circle gatherings.<br>
@@ -846,25 +846,72 @@
 
         // Initialize application
         function initializeMainApp() {
-            // Check if user is already logged in
-            const savedUser = localStorage.getItem('bearCircleUser');
-            if (savedUser) {
-                currentUser = savedUser;
-                showMainApp();
+            try {
+                console.log('Initializing main app...');
+                console.log('Firebase available:', !!window.db);
+                console.log('Firestore functions available:', !!window.firestore);
+                
+                // Check if user is already logged in
+                const savedUser = localStorage.getItem('bearCircleUser');
+                console.log('Saved user:', savedUser);
+                
+                if (savedUser) {
+                    currentUser = savedUser;
+                    showMainApp();
+                } else {
+                    console.log('No saved user, showing login screen');
+                }
+                
+                // Make sure login button is working
+                const loginBtn = document.querySelector('.login-btn');
+                if (loginBtn) {
+                    console.log('Login button found, adding click listener');
+                    loginBtn.addEventListener('click', joinCircle);
+                } else {
+                    console.error('Login button not found');
+                }
+                
+            } catch (error) {
+                console.error('Error initializing app:', error);
             }
         }
 
+        // Make functions globally available
+        window.joinCircle = joinCircle;
+        window.logout = logout;
+        window.addMember = addMember;
+        window.removeMember = removeMember;
+        window.changeYear = changeYear;
+        window.showRandomizeAllConfirmation = showRandomizeAllConfirmation;
+        window.showRandomizeConfirmation = showRandomizeConfirmation;
+        window.hideConfirmation = hideConfirmation;
+        window.executeConfirmedAction = executeConfirmedAction;
+        window.selectDate = selectDate;
+        window.updateRole = updateRole;
+        window.saveDataField = saveDataField;
+        window.updateDayStatus = updateDayStatus;
+        window.exportSchedule = exportSchedule;
+
         // Authentication functions
         function joinCircle() {
-            const input = document.getElementById('userNameInput');
-            const name = input.value.trim();
-            
-            if (name && name.length >= 2) {
-                currentUser = name;
-                localStorage.setItem('bearCircleUser', name);
-                showMainApp();
-            } else {
-                alert('Please enter your full name (at least 2 characters)');
+            try {
+                console.log('Join circle clicked');
+                const input = document.getElementById('userNameInput');
+                const name = input.value.trim();
+                
+                console.log('Name entered:', name);
+                
+                if (name && name.length >= 2) {
+                    currentUser = name;
+                    localStorage.setItem('bearCircleUser', name);
+                    console.log('User set:', currentUser);
+                    showMainApp();
+                } else {
+                    alert('Please enter your full name (at least 2 characters)');
+                }
+            } catch (error) {
+                console.error('Error in joinCircle:', error);
+                alert('Login error. Please refresh the page and try again.');
             }
         }
 
@@ -881,53 +928,80 @@
         }
 
         function showMainApp() {
-            // Check if user is in member list (after members are loaded)
-            if (members.length > 0 && !members.includes(currentUser)) {
-                alert(`Welcome ${currentUser}! You've been added to the sacred circle member list.`);
-                // Auto-add them to members if they're not already there
-                addUserToMembers();
+            try {
+                console.log('Showing main app for user:', currentUser);
+                
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                document.getElementById('currentUserName').textContent = currentUser;
+                
+                // Initialize Firebase listeners
+                initializeFirebaseListeners();
+                
+                console.log('Main app displayed successfully');
+            } catch (error) {
+                console.error('Error in showMainApp:', error);
+                alert('Error loading application. Please refresh and try again.');
             }
-            
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            document.getElementById('currentUserName').textContent = currentUser;
-            
-            // Initialize Firebase listeners
-            initializeFirebaseListeners();
         }
 
         async function addUserToMembers() {
-            if (!members.includes(currentUser)) {
-                const updatedMembers = [...members, currentUser];
-                await saveToFirebase('members', { 
-                    list: updatedMembers,
-                    addedBy: currentUser,
-                    dateAdded: new Date().toISOString()
-                });
+            try {
+                if (!members.includes(currentUser)) {
+                    console.log('Adding user to members:', currentUser);
+                    const updatedMembers = [...members, currentUser];
+                    await saveToFirebase('members', { 
+                        list: updatedMembers,
+                        addedBy: currentUser,
+                        dateAdded: new Date().toISOString()
+                    });
+                }
+            } catch (error) {
+                console.error('Error adding user to members:', error);
             }
         }
 
         // Firebase functions
         async function initializeFirebaseListeners() {
             try {
-                // Set up secure Firestore rules for sacred circle members only
-                await setupSecurityRules();
+                console.log('Initializing Firebase listeners...');
                 
                 // Listen to members document
                 const membersUnsubscribe = window.firestore.onSnapshot(
                     window.firestore.doc(window.db, 'bearCircle', 'members'),
                     (doc) => {
+                        console.log('Members document updated');
                         if (doc.exists()) {
                             const newMembers = doc.data().list || [];
                             const membersChanged = JSON.stringify(members) !== JSON.stringify(newMembers);
                             members = newMembers;
+                            console.log('Current members:', members);
+                            
+                            // Check if current user needs to be added
+                            if (currentUser && !members.includes(currentUser)) {
+                                console.log('Adding current user to members');
+                                addUserToMembers();
+                            }
+                            
                             updateMembersList();
                             
                             // Only regenerate schedule if members actually changed
                             if (membersChanged) {
                                 generateSchedule();
                             }
+                        } else {
+                            console.log('Members document does not exist, creating it');
+                            // Initialize members document if it doesn't exist
+                            saveToFirebase('members', { 
+                                list: [currentUser],
+                                createdBy: currentUser,
+                                dateCreated: new Date().toISOString()
+                            });
                         }
+                    },
+                    (error) => {
+                        console.error('Error listening to members:', error);
+                        updateSyncStatus(false);
                     }
                 );
                 unsubscribeListeners.push(membersUnsubscribe);
@@ -936,6 +1010,7 @@
                 const scheduleUnsubscribe = window.firestore.onSnapshot(
                     window.firestore.doc(window.db, 'bearCircle', `schedule-${currentYear}`),
                     (doc) => {
+                        console.log('Schedule document updated');
                         if (doc.exists()) {
                             scheduleData = doc.data() || {};
                             console.log('Schedule data updated:', scheduleData);
@@ -945,29 +1020,27 @@
                                 updateAttendanceDisplay(cardId);
                                 updateCardSelections(cardId);
                             });
+                        } else {
+                            console.log('Schedule document does not exist yet');
+                            scheduleData = {};
+                            generateSchedule();
                         }
+                    },
+                    (error) => {
+                        console.error('Error listening to schedule:', error);
+                        updateSyncStatus(false);
                     }
                 );
                 unsubscribeListeners.push(scheduleUnsubscribe);
 
                 updateSyncStatus(true);
+                console.log('Firebase listeners initialized successfully');
             } catch (error) {
                 console.error('Firebase connection error:', error);
                 updateSyncStatus(false);
-            }
-        }
-
-        async function setupSecurityRules() {
-            // This will be enforced by Firestore security rules
-            // Only allow access to members in the sacred circle whitelist
-            const allowedMembers = [
-                currentUser  // Current user is automatically allowed
-            ];
-            
-            // Note: Actual security is enforced by Firestore rules
-            // This is just for client-side validation
-            if (!allowedMembers.includes(currentUser)) {
-                throw new Error('Access denied: Not a sacred circle member');
+                
+                // Still show the app even if Firebase fails
+                generateSchedule();
             }
         }
 
@@ -991,11 +1064,15 @@
                     lastModified: new Date().toISOString()
                 };
                 
+                console.log('Saving to Firebase:', docId, secureData);
+                
                 await window.firestore.setDoc(
                     window.firestore.doc(window.db, 'bearCircle', String(docId)),
                     secureData,
                     { merge: true }
                 );
+                
+                console.log('Successfully saved to Firebase');
             } catch (error) {
                 console.error('Error saving to Firebase:', error);
                 alert('Connection error. Please check your internet and try again.');
@@ -1676,6 +1753,11 @@
 
         // Enter key support for adding members and login
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up event listeners');
+            
+            // Initialize the main app
+            initializeMainApp();
+            
             const newMemberInput = document.getElementById('newMemberName');
             if (newMemberInput) {
                 newMemberInput.addEventListener('keypress', function(e) {
@@ -1687,6 +1769,7 @@
             
             const loginInput = document.getElementById('userNameInput');
             if (loginInput) {
+                console.log('Setting up login input enter key');
                 loginInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
                         joinCircle();
