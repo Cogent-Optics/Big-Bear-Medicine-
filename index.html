@@ -926,12 +926,6 @@
             const name = input.value.trim();
             
             if (name && !members.includes(name)) {
-                // Security check: Only existing members can add new members
-                if (members.length > 0 && !members.includes(currentUser)) {
-                    alert('Only existing sacred circle members can add new members.');
-                    return;
-                }
-                
                 const updatedMembers = [...members, name];
                 await saveToFirebase('members', { 
                     list: updatedMembers,
@@ -943,12 +937,6 @@
         }
 
         async function removeMember(name) {
-            // Security check: Only existing members can remove members
-            if (!members.includes(currentUser)) {
-                alert('Only sacred circle members can remove members.');
-                return;
-            }
-            
             // Don't allow removing yourself
             if (name === currentUser) {
                 alert('You cannot remove yourself from the sacred circle.');
