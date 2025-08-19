@@ -1,3 +1,8 @@
++86
+-614
+Lines changed: 86 additions & 614 deletions
+Original file line number	Diff line number	Diff line change
+@@ -1,507 +1,4 @@
 <script>
         // Global variables
         let currentYear = 2025;
@@ -7,7 +12,6 @@
         let currentUser = '';
         let unsubscribeListeners = [];
         let firebaseInitialized = false;
-
         // Authentication functions
         function joinCircle() {
             try {
@@ -30,7 +34,6 @@
                 alert('Login error. Please refresh the page and try again.');
             }
         }
-
         function logout() {
             // Clean up listeners
             unsubscribeListeners.forEach(unsubscribe => unsubscribe());
@@ -42,7 +45,6 @@
             document.getElementById('mainApp').style.display = 'none';
             document.getElementById('userNameInput').value = '';
         }
-
         function showMainApp() {
             try {
                 console.log('Showing main app for user:', currentUser);
@@ -67,7 +69,6 @@
                 alert('Error loading application. Please refresh and try again.');
             }
         }
-
         async function addUserToMembers() {
             try {
                 if (!members.includes(currentUser)) {
@@ -83,7 +84,6 @@
                 console.error('Error adding user to members:', error);
             }
         }
-
         function updateSyncStatus(connected) {
             const statusElement = document.getElementById('syncStatus');
             if (connected) {
@@ -94,7 +94,6 @@
                 statusElement.innerHTML = '⚠️ Connection lost - Check internet connection';
             }
         }
-
         async function saveToFirebase(docId, data) {
             if (!firebaseInitialized || !window.db) {
                 console.log('Firebase not available, saving locally only');
@@ -123,7 +122,6 @@
                 alert('Connection error. Please check your internet and try again.');
             }
         }
-
         async function saveScheduleData(cardId, data) {
             try {
                 // Save the specific card data to Firebase
@@ -138,7 +136,6 @@
                 alert('Connection error. Please check your internet and try again.');
             }
         }
-
         async function updateFirebaseField(docId, field, value) {
             try {
                 const docRef = window.firestore.doc(window.db, 'bearCircle', String(docId));
@@ -151,7 +148,6 @@
                 console.error('Error updating Firebase:', error);
             }
         }
-
         // Member management
         async function addMember() {
             const input = document.getElementById('newMemberName');
@@ -167,7 +163,6 @@
                 input.value = '';
             }
         }
-
         async function removeMember(name) {
             // Don't allow removing yourself
             if (name === currentUser) {
@@ -182,7 +177,6 @@
                 dateRemoved: new Date().toISOString()
             });
         }
-
         function updateMembersList() {
             const container = document.getElementById('membersList');
             container.innerHTML = members.map(member => 
@@ -192,7 +186,6 @@
                 </span>`
             ).join('');
         }
-
         // New moon date calculations
         function getNewMoonDates(year) {
             const knownNewMoons2025 = [
@@ -209,11 +202,9 @@
                 new Date(2025, 10, 20), // November 20
                 new Date(2025, 11, 19)  // December 19
             ];
-
             if (year === 2025) {
                 return knownNewMoons2025;
             }
-
             // Approximation for other years
             const baseDate = new Date(year, 0, 6);
             const lunarCycle = 29.53 * 24 * 60 * 60 * 1000;
@@ -228,7 +219,6 @@
             
             return newMoons.filter(date => date.getFullYear() === year);
         }
-
         function getFiveDayWindow(newMoonDate) {
             const dates = [];
             for (let i = -2; i <= 2; i++) {
@@ -246,7 +236,6 @@
             }
             return dates;
         }
-
         function formatDate(date) {
             return date.toLocaleDateString('en-US', {
                 weekday: 'short',
@@ -254,7 +243,6 @@
                 day: 'numeric'
             });
         }
-
         function formatLongDate(date) {
             return date.toLocaleDateString('en-US', {
                 weekday: 'long',
@@ -263,7 +251,6 @@
                 day: 'numeric'
             });
         }
-
         // Updated function to calculate day attendance colors
         function calculateDayAttendanceStatus(cardId, dayIndex) {
             const data = scheduleData[cardId] || {};
@@ -299,7 +286,6 @@
                 return 'orange';
             }
         }
-
         // Updated function to get eligible members for role assignment
         function getEligibleMembersForDay(cardId, dayIndex) {
             const data = scheduleData[cardId] || {};
@@ -314,7 +300,6 @@
             
             return eligible;
         }
-
         // Confirmation modal functions
         function showConfirmation(title, message, action) {
             document.getElementById('modalTitle').textContent = title;
@@ -322,19 +307,16 @@
             document.getElementById('confirmationModal').style.display = 'flex';
             pendingAction = action;
         }
-
         function hideConfirmation() {
             document.getElementById('confirmationModal').style.display = 'none';
             pendingAction = null;
         }
-
         function executeConfirmedAction() {
             if (pendingAction) {
                 pendingAction();
                 hideConfirmation();
             }
         }
-
         function showRandomizeConfirmation(cardId) {
             showConfirmation(
                 'Randomize Roles',
@@ -342,7 +324,6 @@
                 () => randomizeRoles(cardId)
             );
         }
-
         function showRandomizeAllConfirmation() {
             showConfirmation(
                 'Randomize All Roles',
@@ -350,7 +331,6 @@
                 () => randomizeAllRoles()
             );
         }
-
         // Updated role assignment functions
         async function randomizeRoles(cardId) {
             const data = scheduleData[cardId] || {};
@@ -378,7 +358,6 @@
             // Save to Firebase
             await saveScheduleData(cardId, data);
         }
-
         async function randomizeAllRoles() {
             const newMoons = getNewMoonDates(currentYear);
             let assignedCount = 0;
@@ -415,7 +394,6 @@
             
             alert(`Roles assigned for ${assignedCount} gatherings. ${skippedCount} gatherings skipped due to no selected date or insufficient "Yes" responses.`);
         }
-
         // Updated attendance functions
         async function updateDayStatus(cardId, member, dayIndex, status) {
             const data = scheduleData[cardId] || {};
@@ -431,6 +409,160 @@
             await saveScheduleData(cardId, data);
             
             // Update UI immediately
+            updateAttendanceDisplay(cardId);
+        }
+        function updateCardSelections(cardId) {
+            const data = scheduleData[cardId] || {};
+            const card = document.querySelector(`[data-card="${cardId}"]`);
+            
+            if (!card) return;
+            
+            // Update selected date
+            const dateOptions = card.querySelectorAll('.date-option');
+            dateOptions.forEach((option, index) => {
+                if (data.selectedDate === index) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+            
+            // Update role selectors
+            const hostSelector = card.querySelector('.host-selector');
+            const leaderSelector = card.querySelector('.leader-selector');
+            
+            if (hostSelector && data.host) {
+                hostSelector.value = data.host;
+            }
+            if (leaderSelector && data.leader) {
+                leaderSelector.value = data.leader;
+            }
+            
+            // Update meeting info fields
+            const timeInput = card.querySelector('input[type="time"]');
+            const locationInput = card.querySelector('.meeting-location input');
+            const notesTextarea = card.querySelector('.meeting-notes textarea');
+            
+            if (timeInput && data.time) {
+                timeInput.value = data.time;
+            }
+            if (locationInput && data.location) {
+                locationInput.value = data.location;
+            }
+            if (notesTextarea && data.notes) {
+                notesTextarea.value = data.notes;
+            }
+            
+            // Update attendance dropdowns
+            const attendance = data.attendance || {};
+            Object.entries(attendance).forEach(([member, memberDays]) => {
+                if (typeof memberDays === 'object') {
+                    Object.entries(memberDays).forEach(([dayIndex, status]) => {
+                        const dropdown = card.querySelector(`select[onchange*="'${member}', ${dayIndex}"]`);
+                        if (dropdown) {
+                            dropdown.value = status;
+                            dropdown.className = `day-status-select status-${status}`;
+                        }
+                    });
+                }
+            });
+        }
+        function updateAttendanceDisplay(cardId) {
+            const data = scheduleData[cardId] || {};
+            const attendance = data.attendance || {};
+            
+            console.log(`Updating attendance display for ${cardId}:`, attendance);
+            
+            // Count members who said yes to any day
+            const membersAttending = Object.values(attendance).filter(memberDays => {
+                if (typeof memberDays === 'object') {
+                    return Object.values(memberDays).some(status => status === 'yes');
+                <!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+@@ -1306,59 +803,21 @@ <h3 id="modalTitle">Confirm Action</h3>
+    </div>
+
+    <script>
+        // Global variables
+        let currentYear = 2025;
+        let scheduleData = {};
+        let members = [];
+        let pendingAction = null;
+        let currentUser = '';
+        let unsubscribeListeners = [];
+        // Initialize application
+        function initializeMainApp() {
+            try {
+                console.log('Initializing main app...');
+                
+                // Check if user is already logged in
+                const savedUser = localStorage.getItem('bearCircleUser');
+                console.log('Saved user:', savedUser);
+                
+                if (savedUser) {
+                    currentUser = savedUser;
+                    showMainApp();
+                } else {
+                    console.log('No saved user, showing login screen');
+                    // Make sure login screen is visible
+                    document.getElementById('loginScreen').style.display = 'flex';
+                    document.getElementById('mainApp').style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('Error initializing app:', error);
+            }
+        }
+        // Make functions globally available
+        window.joinCircle = joinCircle;
+        window.logout = logout;
+        window.addMember = addMember;
+        window.removeMember = removeMember;
+        window.changeYear = changeYear;
+        window.showRandomizeAllConfirmation = showRandomizeAllConfirmation;
+        window.showRandomizeConfirmation = showRandomizeConfirmation;
+        window.hideConfirmation = hideConfirmation;
+        window.executeConfirmedAction = executeConfirmedAction;
+        window.selectDate = selectDate;
+        window.updateRole = updateRole;
+        window.saveDataField = saveDataField;
+        window.updateDayStatus = updateDayStatus;
+        window.exportSchedule = exportSchedule;
+        let firebaseInitialized = false;
+
+        // Authentication functions
+        function joinCircle() {
+            try {
+                console.log('Join circle clicked');
+                const input = document.getElementById('userNameInput');
+                const name = input.value.trim();
+                const name = input?.value?.trim();
+
+                console.log('Name entered:', name);
+
+@@ -1573,19 +1032,6 @@ <h3 id="modalTitle">Confirm Action</h3>
+            }
+        }
+
+        async function updateFirebaseField(docId, field, value) {
+            try {
+                const docRef = window.firestore.doc(window.db, 'bearCircle', String(docId));
+                await window.firestore.updateDoc(docRef, {
+                    [field]: value,
+                    lastModifiedBy: currentUser,
+                    lastModified: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error('Error updating Firebase:', error);
+            }
+        }
+        // Member management
+        async function addMember() {
+            const input = document.getElementById('newMemberName');
+@@ -1868,62 +1314,7 @@ <h3 id="modalTitle">Confirm Action</h3>
             updateAttendanceDisplay(cardId);
         }
 
@@ -490,172 +622,13 @@
                 }
             });
         }
-
         function updateAttendanceDisplay(cardId) {
             const data = scheduleData[cardId] || {};
             const attendance = data.attendance || {};
-            
-            console.log(`Updating attendance display for ${cardId}:`, attendance);
-            
-            // Count members who said yes to any day
-            const membersAttending = Object.values(attendance).filter(memberDays => {
-                if (typeof memberDays === 'object') {
-                    return Object.values(memberDays).some(status => status === 'yes');
-                <!DOCTYPE html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-@@ -1306,59 +803,21 @@ <h3 id="modalTitle">Confirm Action</h3>
-</div>
-
-<script>
-        // Global variables
-let currentYear = 2025;
-let scheduleData = {};
-let members = [];
-let pendingAction = null;
-let currentUser = '';
-let unsubscribeListeners = [];
-
-        // Initialize application
-        function initializeMainApp() {
-            try {
-                console.log('Initializing main app...');
-                
-                // Check if user is already logged in
-                const savedUser = localStorage.getItem('bearCircleUser');
-                console.log('Saved user:', savedUser);
-                
-                if (savedUser) {
-                    currentUser = savedUser;
-                    showMainApp();
-                } else {
-                    console.log('No saved user, showing login screen');
-                    // Make sure login screen is visible
-                    document.getElementById('loginScreen').style.display = 'flex';
-                    document.getElementById('mainApp').style.display = 'none';
-                }
-                
-            } catch (error) {
-                console.error('Error initializing app:', error);
-            }
-        }
-
-        // Make functions globally available
-        window.joinCircle = joinCircle;
-        window.logout = logout;
-        window.addMember = addMember;
-        window.removeMember = removeMember;
-        window.changeYear = changeYear;
-        window.showRandomizeAllConfirmation = showRandomizeAllConfirmation;
-        window.showRandomizeConfirmation = showRandomizeConfirmation;
-        window.hideConfirmation = hideConfirmation;
-        window.executeConfirmedAction = executeConfirmedAction;
-        window.selectDate = selectDate;
-        window.updateRole = updateRole;
-        window.saveDataField = saveDataField;
-        window.updateDayStatus = updateDayStatus;
-        window.exportSchedule = exportSchedule;
-        let firebaseInitialized = false;
-
-// Authentication functions
-function joinCircle() {
-try {
-console.log('Join circle clicked');
-const input = document.getElementById('userNameInput');
-                const name = input.value.trim();
-                const name = input?.value?.trim();
-
-console.log('Name entered:', name);
-
-@@ -1573,19 +1032,6 @@ <h3 id="modalTitle">Confirm Action</h3>
-}
-}
-
-        async function updateFirebaseField(docId, field, value) {
-            try {
-                const docRef = window.firestore.doc(window.db, 'bearCircle', String(docId));
-                await window.firestore.updateDoc(docRef, {
-                    [field]: value,
-                    lastModifiedBy: currentUser,
-                    lastModified: new Date().toISOString()
-                });
-            } catch (error) {
-                console.error('Error updating Firebase:', error);
-            }
-        }
-
-// Member management
-async function addMember() {
-const input = document.getElementById('newMemberName');
-@@ -1868,62 +1314,7 @@ <h3 id="modalTitle">Confirm Action</h3>
-updateAttendanceDisplay(cardId);
-}
-
-        function updateCardSelections(cardId) {
-            const data = scheduleData[cardId] || {};
-            const card = document.querySelector(`[data-card="${cardId}"]`);
-            
-            if (!card) return;
-            
-            // Update selected date
-            const dateOptions = card.querySelectorAll('.date-option');
-            dateOptions.forEach((option, index) => {
-                if (data.selectedDate === index) {
-                    option.classList.add('selected');
-                } else {
-                    option.classList.remove('selected');
-                }
-            });
-            
-            // Update role selectors
-            const hostSelector = card.querySelector('.host-selector');
-            const leaderSelector = card.querySelector('.leader-selector');
-            
-            if (hostSelector && data.host) {
-                hostSelector.value = data.host;
-            }
-            if (leaderSelector && data.leader) {
-                leaderSelector.value = data.leader;
-            }
-            
-            // Update meeting info fields
-            const timeInput = card.querySelector('input[type="time"]');
-            const locationInput = card.querySelector('.meeting-location input');
-            const notesTextarea = card.querySelector('.meeting-notes textarea');
-            
-            if (timeInput && data.time) {
-                timeInput.value = data.time;
-            }
-            if (locationInput && data.location) {
-                locationInput.value = data.location;
-            }
-            if (notesTextarea && data.notes) {
-                notesTextarea.value = data.notes;
-            }
-            
-            // Update attendance dropdowns
-            const attendance = data.attendance || {};
-            Object.entries(attendance).forEach(([member, memberDays]) => {
-                if (typeof memberDays === 'object') {
-                    Object.entries(memberDays).forEach(([dayIndex, status]) => {
-                        const dropdown = card.querySelector(`select[onchange*="'${member}', ${dayIndex}"]`);
-                        if (dropdown) {
-                            dropdown.value = status;
-                            dropdown.className = `day-status-select status-${status}`;
-                        }
-                    });
-                }
-            });
-        }
-        function updateAttendanceDisplay(cardId) {
-const data = scheduleData[cardId] || {};
-const attendance = data.attendance || {};
 
 @@ -1984,6 +1375,63 @@ <h3 id="modalTitle">Confirm Action</h3>
-await saveScheduleData(cardId, data);
-}
+            await saveScheduleData(cardId, data);
+        }
 
         function updateCardSelections(cardId) {
             const data = scheduleData[cardId] || {};
@@ -713,13 +686,12 @@ await saveScheduleData(cardId, data);
                 }
             });
         }
-
-// Schedule generation
-function generateSchedule() {
-const newMoons = getNewMoonDates(currentYear);
+        // Schedule generation
+        function generateSchedule() {
+            const newMoons = getNewMoonDates(currentYear);
 @@ -2227,6 +1675,30 @@ <h3 id="modalTitle">Confirm Action</h3>
-URL.revokeObjectURL(url);
-}
+            URL.revokeObjectURL(url);
+        }
 
         // Initialize application
         function initializeMainApp() {
@@ -744,6 +716,5 @@ URL.revokeObjectURL(url);
                 console.error('Error initializing app:', error);
             }
         }
-
-// Set up confirmation modal
-document.getElementById('confirmBtn').onclick = executeConfirmedAction;
+        // Set up confirmation modal
+        document.getElementById('confirmBtn').onclick = executeConfirmedAction;
