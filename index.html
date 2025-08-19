@@ -548,6 +548,75 @@
             font-size: 9px;
             width: 100%;
         }
+        /* Color-coded attendance status styles for dropdowns */
+.day-status-select.status-yes {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: rgba(34, 197, 94, 0.5);
+    color: #22C55E;
+}
+
+.day-status-select.status-maybe {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.5);
+    color: #F59E0B;
+}
+
+.day-status-select.status-no {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #EF4444;
+}
+
+/* Enhanced day attendance item colors for the containers */
+.day-attendance-item.yes {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: rgba(34, 197, 94, 0.5);
+}
+
+.day-attendance-item.maybe {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.5);
+}
+
+.day-attendance-item.no {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+/* Member name chips under each date */
+.date-attendees {
+    margin-top: 8px;
+    padding: 6px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    min-height: 20px;
+}
+
+.attendee-chip {
+    display: inline-block;
+    margin: 2px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 8px;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.attendee-chip.yes {
+    background: rgba(34, 197, 94, 0.8);
+    color: white;
+}
+
+.attendee-chip.maybe {
+    background: rgba(245, 158, 11, 0.8);
+    color: white;
+}
+
+.attendee-chip.no {
+    background: rgba(239, 68, 68, 0.8);
+    color: white;
+}
         
         .attendance-item select {
             background: rgba(255,255,255,0.1);
@@ -1297,6 +1366,44 @@
         }
 
         // Updated attendance functions
+        // Helper function to get attendees for each date
+function getDateAttendees(cardId, dayIndex) {
+    const data = scheduleData[cardId] || {};
+    const attendance = data.attendance || {};
+    const attendees = { yes: [], maybe: [], no: [] };
+    
+    Object.entries(attendance).forEach(([member, memberDays]) => {
+        if (typeof memberDays === 'object' && memberDays[dayIndex]) {
+            const status = memberDays[dayIndex];
+            if (attendees[status]) {
+                attendees[status].push(member);
+            }
+        }
+    });
+    
+    return attendees;
+}
+
+// Helper function to generate attendee name chips
+function generateAttendeeChips(attendees) {
+    let html = '';
+    
+    attendees.yes.forEach(member => {
+        html += `<span class="attendee-chip yes">${member}</span>`;
+    });
+    
+    attendees.maybe.forEach(member => {
+        html += `<span class="attendee-chip maybe">${member}</span>`;
+    });
+    
+    attendees.no.forEach(member => {
+        html += `<span class="attendee-chip no">${member}</span>`;
+    });
+    
+    return html;
+}
+
+// Updated attendance functions
         async function updateDayStatus(cardId, member, dayIndex, status) {
             const data = scheduleData[cardId] || {};
             if (!data.attendance) data.attendance = {};
