@@ -10,612 +10,262 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #2C1810 0%, #4A2C2A 50%, #1F2937 100%);
-            color: #F3F4F6;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #581c87 100%);
+            color: #f9fafb;
             min-height: 100vh;
             padding: 20px;
         }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        /* Login Screen Styles */
+
         .login-screen {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 80vh;
-            text-align: center;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #581c87 100%);
+            z-index: 1000;
         }
-        
+
         .login-card {
-            background: rgba(139, 69, 19, 0.15);
-            padding: 50px;
-            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(245, 158, 11, 0.3);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            max-width: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
         }
-        
+
         .login-title {
-            font-size: 3em;
-            color: #F59E0B;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
-        }
-        
-        .login-subtitle {
-            font-size: 1.3em;
-            color: #D1D5DB;
-            margin-bottom: 40px;
-            font-style: italic;
-        }
-        
-        .login-input {
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(245, 158, 11, 0.3);
-            border-radius: 15px;
-            padding: 20px;
-            color: #F3F4F6;
-            font-size: 18px;
-            width: 100%;
-            margin-bottom: 30px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .login-input:focus {
-            outline: none;
-            border-color: #F59E0B;
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
-            background: rgba(255,255,255,0.15);
-        }
-        
-        .login-btn {
-            background: linear-gradient(45deg, #F59E0B, #FBBF24);
-            color: #1F2937;
-            border: none;
-            padding: 20px 50px;
-            border-radius: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
-            width: 100%;
-        }
-        
-        .login-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(245, 158, 11, 0.4);
-        }
-        
-        .login-description {
-            color: #9CA3AF;
-            font-size: 14px;
-            margin-top: 20px;
-            line-height: 1.6;
-        }
-        
-        /* Main App Styles */
-        .main-app {
-            display: none;
-        }
-        
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #F59E0B;
-            font-size: 2.8em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
-            font-weight: 300;
-            letter-spacing: 1px;
-        }
-        
-        .subtitle {
-            text-align: center;
-            margin-bottom: 40px;
-            color: #D1D5DB;
-            font-size: 1.2em;
-            font-style: italic;
-        }
-        
-        .user-info {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(139, 69, 19, 0.1);
-            border-radius: 15px;
-            border: 1px solid rgba(245, 158, 11, 0.2);
-        }
-        
-        .user-name {
-            color: #F59E0B;
-            font-weight: bold;
-            font-size: 16px;
-        }
-        
-        .logout-btn {
-            background: rgba(239, 68, 68, 0.8);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-left: 15px;
-            transition: all 0.3s ease;
-        }
-        
-        .logout-btn:hover {
-            background: rgba(239, 68, 68, 1);
-        }
-        
-        .controls {
-            background: rgba(139, 69, 19, 0.15);
-            padding: 25px;
-            border-radius: 20px;
-            margin-bottom: 35px;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(245, 158, 11, 0.3);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-        
-        .control-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        
-        .year-selector {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-        }
-        
-        .year-selector button, .btn {
-            background: linear-gradient(45deg, #7C3AED, #A855F7);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
-        }
-        
-        .year-selector button:hover, .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
-        }
-        
-        .btn-success {
-            background: linear-gradient(45deg, #059669, #10B981);
-        }
-        
-        .btn-danger {
-            background: linear-gradient(45deg, #DC2626, #EF4444);
-        }
-        
-        .btn-warning {
-            background: linear-gradient(45deg, #D97706, #F59E0B);
-        }
-        
-        .year-display {
             font-size: 28px;
             font-weight: bold;
-            color: #F59E0B;
-            min-width: 100px;
-            text-align: center;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        
-        .member-management {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .member-input {
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(245, 158, 11, 0.3);
-            border-radius: 10px;
-            padding: 12px 16px;
-            color: #F3F4F6;
-            font-size: 14px;
-            min-width: 200px;
-            transition: all 0.3s ease;
-        }
-        
-        .member-input:focus {
-            outline: none;
-            border-color: #F59E0B;
-            box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
-            background: rgba(255,255,255,0.15);
-        }
-        
-        .members-list {
-            background: rgba(139, 69, 19, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            margin-top: 20px;
-        }
-        
-        .member-tag {
-            display: inline-block;
-            background: linear-gradient(45deg, #7C3AED, #A855F7);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            margin: 5px;
-            font-size: 13px;
-            font-weight: 500;
-            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
-        }
-        
-        .member-tag .remove-btn {
-            background: none;
-            border: none;
-            color: #FCA5A5;
-            cursor: pointer;
-            margin-left: 10px;
-            font-weight: bold;
+
+        .login-description {
             font-size: 16px;
+            margin-bottom: 30px;
+            color: #d1d5db;
         }
-        
+
+        .login-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .login-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .main-app {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .app-title {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .app-subtitle {
+            font-size: 18px;
+            color: #d1d5db;
+            margin-bottom: 20px;
+        }
+
+        .sync-status {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            border-radius: 20px;
+            color: #22c55e;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .user-info {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .create-btn {
+            display: block;
+            margin: 30px auto;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .create-btn:hover {
+            transform: translateY(-2px);
+        }
+
         .schedule-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 25px;
+            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
         }
-        
-        .moon-card {
-            background: rgba(139, 69, 19, 0.08);
-            border-radius: 20px;
+
+        .schedule-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
             padding: 25px;
-            border: 2px solid rgba(245, 158, 11, 0.2);
-            backdrop-filter: blur(8px);
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-        }
-        
-        .moon-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(245, 158, 11, 0.15);
-            border-color: rgba(245, 158, 11, 0.5);
-        }
-        
-        .moon-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.03) 0%, transparent 70%);
-            pointer-events: none;
-        }
-        
-        .moon-header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        
-        .moon-icon {
-            font-size: 50px;
-            margin-bottom: 15px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .moon-date {
-            font-size: 20px;
-            font-weight: 600;
-            color: #F59E0B;
-            margin-bottom: 8px;
-        }
-        
-        .moon-day {
-            font-size: 14px;
-            color: #D1D5DB;
-        }
-        
-        .date-selection {
-            margin-bottom: 25px;
-        }
-        
-        .date-options {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin-top: 15px;
-        }
-        
-        .date-option {
-            background: rgba(255,255,255,0.05);
-            border: 2px solid transparent;
-            border-radius: 12px;
-            padding: 12px 6px;
-            text-align: center;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s ease;
             position: relative;
         }
-        
-        .date-option:hover {
-            background: rgba(255,255,255,0.1);
-            transform: scale(1.05);
-        }
-        
-        .date-option.selected {
-            border-color: #F59E0B;
-            background: rgba(245, 158, 11, 0.2);
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
-        }
-        
-        /* New color system for day attendance */
-        .date-option.attendance-green {
-            background: rgba(34, 197, 94, 0.2);
-            border-color: rgba(34, 197, 94, 0.6);
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
-        }
-        
-        .date-option.attendance-purple {
-            background: rgba(147, 51, 234, 0.2);
-            border-color: rgba(147, 51, 234, 0.6);
-            box-shadow: 0 0 10px rgba(147, 51, 234, 0.3);
-        }
-        
-        .date-option.attendance-orange {
-            background: rgba(251, 146, 60, 0.2);
-            border-color: rgba(251, 146, 60, 0.6);
-            box-shadow: 0 0 10px rgba(251, 146, 60, 0.3);
-        }
-        
-        .day-label {
-            font-weight: bold;
-            color: #F59E0B;
-            font-size: 10px;
-            margin-bottom: 4px;
-        }
-        
-        .date-num {
-            font-size: 16px;
-            margin: 4px 0;
-            font-weight: 600;
-        }
-        
-        .roles-section {
-            background: rgba(124, 58, 237, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(124, 58, 237, 0.3);
-        }
-        
-        .role-assignment {
+
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
-        
-        .role-label {
-            font-size: 14px;
-            color: #A855F7;
-            font-weight: 600;
+
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fbbf24;
         }
-        
-        .role-person {
-            background: rgba(255,255,255,0.1);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            border: 1px solid rgba(255,255,255,0.2);
-            min-width: 100px;
-            text-align: center;
-        }
-        
-        .role-selector {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
+
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #ef4444;
             padding: 6px 12px;
-            color: #F3F4F6;
-            font-size: 12px;
-            min-width: 120px;
-        }
-        
-        .randomize-btn {
-            background: linear-gradient(45deg, #EC4899, #F472B6);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 12px;
-            font-weight: 600;
-            width: 100%;
-            margin-top: 15px;
-            transition: all 0.3s ease;
-        }
-        
-        .randomize-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
-        }
-        
-        .randomize-btn:disabled {
-            background: rgba(107, 114, 128, 0.5);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .meeting-info {
-            background: rgba(34, 197, 94, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-        
-        /* Enhanced meeting-info when complete */
-        .meeting-info.complete {
-            background: rgba(34, 197, 94, 0.15);
-            border-color: rgba(34, 197, 94, 0.4);
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
         }
 
-        .meeting-info.complete .selected-date-value {
-            color: #22C55E;
+        .card-section {
+            margin-bottom: 25px;
         }
-        
-        .selected-date-display {
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fbbf24;
             margin-bottom: 15px;
-            padding: 12px;
-            border-radius: 8px;
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .selected-date-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #F59E0B;
-            margin-top: 5px;
+        .date-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
         }
-        
-        .meeting-time input, .meeting-location input, .meeting-notes textarea {
-            width: 100%;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
-            padding: 10px;
-            color: #F3F4F6;
-            font-size: 14px;
-            margin-top: 8px;
+
+        .date-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
         }
-        
-        .meeting-time input:focus, .meeting-location input:focus, .meeting-notes textarea:focus {
-            outline: none;
-            border-color: #22C55E;
+
+        .date-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .date-option.selected {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.2);
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .date-option.attendance-green {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.2);
             box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
         }
-        
-        .meeting-notes textarea {
-            resize: vertical;
-            min-height: 70px;
-        }
-        
-        .attendance-section {
-            background: rgba(249, 115, 22, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid rgba(249, 115, 22, 0.3);
-        }
-        
-        .attendance-list {
-            display: block;
-            margin-top: 15px;
-        }
-        
-        .attendance-item {
-            background: rgba(255,255,255,0.05);
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 15px;
-        }
-        
-        .daily-attendance-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin-top: 8px;
-        }
-        
-        .day-attendance-item {
-            background: rgba(255,255,255,0.03);
-            padding: 8px;
-            border-radius: 6px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        
-        .day-header {
-            margin-bottom: 6px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .day-status-select {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 4px;
-            padding: 3px 6px;
-            color: #F3F4F6;
-            font-size: 9px;
-            width: 100%;
-        }
-        
-        /* Color-coded attendance status styles for dropdowns */
-        .day-status-select.status-yes {
-            background: rgba(34, 197, 94, 0.2);
-            border-color: rgba(34, 197, 94, 0.5);
-            color: #22C55E;
+
+        .date-option.attendance-purple {
+            border-color: #a855f7;
+            background: rgba(168, 85, 247, 0.2);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
         }
 
-        .day-status-select.status-maybe {
-            background: rgba(245, 158, 11, 0.2);
-            border-color: rgba(245, 158, 11, 0.5);
-            color: #F59E0B;
+        .date-option.attendance-orange {
+            border-color: #f97316;
+            background: rgba(249, 115, 22, 0.2);
+            box-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
         }
 
-        .day-status-select.status-no {
-            background: rgba(239, 68, 68, 0.2);
-            border-color: rgba(239, 68, 68, 0.5);
-            color: #EF4444;
+        .date-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fbbf24;
+            margin-bottom: 4px;
         }
 
-        /* Enhanced day attendance item colors for the containers */
-        .day-attendance-item.yes {
-            background: rgba(34, 197, 94, 0.2);
-            border-color: rgba(34, 197, 94, 0.5);
+        .date-label {
+            font-size: 11px;
+            color: #d1d5db;
+            margin-bottom: 8px;
         }
 
-        .day-attendance-item.maybe {
-            background: rgba(245, 158, 11, 0.2);
-            border-color: rgba(245, 158, 11, 0.5);
-        }
-
-        .day-attendance-item.no {
-            background: rgba(239, 68, 68, 0.2);
-            border-color: rgba(239, 68, 68, 0.5);
-        }
-
-        /* Member name chips under each date */
         .date-attendees {
-            margin-top: 8px;
-            padding: 6px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 8px;
             min-height: 20px;
         }
 
@@ -645,233 +295,565 @@
             background: rgba(239, 68, 68, 0.8);
             color: white;
         }
-        
-        .attendance-item select {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 6px;
-            padding: 4px 8px;
-            color: #F3F4F6;
-            font-size: 11px;
+
+        .attendance-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .attendance-count {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .attendance-count.status-yes {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+        }
+
+        .attendance-count.status-maybe {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .attendance-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .attendance-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .daily-attendance-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .day-attendance-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .day-attendance-item.yes {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+
+        .day-attendance-item.maybe {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+
+        .day-attendance-item.no {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .day-header {
+            margin-bottom: 8px;
+        }
+
+        .day-status-select {
             width: 100%;
+            padding: 4px;
+            border: none;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 10px;
+        }
+
+        .day-status-select.status-yes {
+            background: rgba(34, 197, 94, 0.3);
+        }
+
+        .day-status-select.status-maybe {
+            background: rgba(245, 158, 11, 0.3);
+        }
+
+        .day-status-select.status-no {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .meeting-info {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .meeting-info.complete {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.4);
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
+        }
+
+        .selected-date-display {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .selected-date-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #F59E0B;
             margin-top: 5px;
         }
-        
-        .attendance-summary {
-            margin-top: 15px;
-            padding: 10px;
-            background: rgba(245, 158, 11, 0.1);
-            border-radius: 8px;
-            text-align: center;
-        }
-        
-        .status-yes { color: #22C55E; }
-        .status-maybe { color: #F59E0B; }
-        .status-no { color: #EF4444; }
-        
-        label {
-            display: block;
-            font-size: 12px;
-            color: #D1D5DB;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 500;
-        }
-        
-        .export-section {
-            margin-top: 40px;
-            text-align: center;
-        }
-        
-        .export-btn {
-            background: linear-gradient(45deg, #F59E0B, #FBBF24);
-            color: #1F2937;
-            border: none;
-            padding: 18px 40px;
-            border-radius: 15px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
-        }
-        
-        .export-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 12px 35px rgba(245, 158, 11, 0.4);
-        }
-        
-        .attendance-count {
-            margin-top: 10px;
-            font-size: 11px;
-            color: #9CA3AF;
-            text-align: center;
-        }
-        
-        .confirmation-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        .modal-content {
-            background: #374151;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            max-width: 400px;
-            margin: 20px;
-            border: 2px solid rgba(245, 158, 11, 0.3);
-        }
-        
-        .modal-buttons {
-            margin-top: 20px;
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-        
-        .loading {
-            display: inline-block;
-            color: #F59E0B;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .sync-status {
-            text-align: center;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 12px;
-        }
-        
-        .sync-connected {
-            background: rgba(34, 197, 94, 0.1);
+
+        .meeting-info.complete .selected-date-value {
             color: #22C55E;
-            border: 1px solid rgba(34, 197, 94, 0.3);
         }
-        
-        .sync-disconnected {
-            background: rgba(239, 68, 68, 0.1);
-            color: #EF4444;
-            border: 1px solid rgba(239, 68, 68, 0.3);
+
+        .info-group {
+            margin-bottom: 15px;
         }
-        
+
+        .info-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fbbf24;
+            margin-bottom: 8px;
+        }
+
+        .info-group input, .info-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+        }
+
+        .info-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .randomize-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #8b5cf6, #7c3aed);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .randomize-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .randomize-btn:disabled {
+            background: rgba(107, 114, 128, 0.5);
+            cursor: not-allowed;
+        }
+
+        .how-it-works {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .how-it-works h4 {
+            color: #F59E0B;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .how-it-works p {
+            font-size: 11px;
+            color: #D1D5DB;
+            line-height: 1.4;
+        }
+
         @media (max-width: 768px) {
             .schedule-grid {
                 grid-template-columns: 1fr;
             }
             
-            .control-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .member-management {
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-            
             .date-options {
-                grid-template-columns: repeat(5, 1fr);
-                gap: 4px;
-            }
-            
-            .attendance-list {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
             }
             
             .daily-attendance-grid {
-                grid-template-columns: repeat(5, 1fr);
-                gap: 4px;
-            }
-            
-            .day-status-select {
-                font-size: 8px;
-                padding: 2px 4px;
-            }
-            
-            h1 {
-                font-size: 2.2em;
-            }
-            
-            .login-card {
-                padding: 30px;
-                margin: 20px;
-            }
-            
-            .login-title {
-                font-size: 2.2em;
+                grid-template-columns: repeat(3, 1fr);
             }
         }
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
     <div class="login-screen" id="loginScreen">
         <div class="login-card">
             <div class="login-title">Big Bear Medicine</div>
-            <h2 class="login-subtitle">Big Bear Medicine Gathering</h2>
-            <p style="color: #9CA3AF; margin-bottom: 30px;">Enter your name to join the sacred circle</p>
-            
-            <input type="text" id="userNameInput" class="login-input" placeholder="Your Name" maxlength="30">
-            <button class="login-btn" onclick="joinCircle()" id="joinCircleBtn">Join Sacred Circle</button>
-            
-            <div class="login-description">
-                A lunar-aligned scheduling system for our sacred men's circle gatherings.<br>
-                All data is shared in real-time with circle members.
-            </div>
+            <div class="login-description">Sacred Circle Lunar Scheduler</div>
+            <input type="text" id="memberName" class="login-input" placeholder="Enter your sacred name">
+            <button onclick="login()" class="login-btn">🌙 Join the Circle</button>
         </div>
     </div>
 
-    <!-- Main Application -->
     <div class="container main-app" id="mainApp">
-        <div class="sync-status" id="syncStatus">
-            <span class="loading">🌙 Connecting to sacred circle...</span>
-        </div>
+        <div class="sync-status" id="syncStatus">🔄 Syncing with Firebase...</div>
         
-        <div class="user-info">
-            <span>Welcome to the circle, </span>
-            <span class="user-name" id="currentUserName"></span>
-            <button class="logout-btn" onclick="logout()">Leave Circle</button>
-            <div style="margin-top: 10px; font-size: 11px; color: #9CA3AF;">
-                🔐 Sacred Circle Security: Only authorized members can access this data
+        <div class="header">
+            <h1 class="app-title">🐻 Big Bear Medicine</h1>
+            <p class="app-subtitle">Sacred Men's Circle • Lunar-Aligned Gathering Scheduler</p>
+            <div class="user-info">
+                Welcome, <span id="currentUser"></span> • Aligned with the rhythm of the moon and sacred masculine energy
             </div>
         </div>
-        
-        <h1>Big Bear Medicine Gathering</h1>
-        <div class="subtitle">Moon Phase Sacred Circle Scheduler</div>
-        
-        <div class="controls">
-            <div class="control-row">
-                <div class="year-selector">
-                    <button onclick="changeYear(-1)">← Previous Year</button>
-                    <div class="year-display" id="currentYear">2025</div>
-                    <button onclick="changeYear(1)">Next Year →</button>
-                </div>
-                
-                <div class="member-management">
-                    <input type="text" id="newMemberName" class="member-input" placeholder="Add sacred circle member...">
-                    <button class="btn btn-success" onclick="addMember()">Add Member</button>
-                    <button class="btn btn-warning" onclick="showRandomizeAllConfirmation()">🎲 Randomize All Roles (Fair Rotation)</button>
-                </div>
-            </div>
+
+        <button onclick="createNewSchedule()" class="create-btn">
+            🌙 Create New Sacred Gathering
+        </button>
+
+        <div class="schedule-grid" id="scheduleGrid"></div>
+
+        <div class="how-it-works">
+            <h4>💡 How Sacred Gathering Scheduling Works:</h4>
+            <p>Each gathering shows 5 lunar-aligned dates. Circle members select Yes/Maybe/No for each day. Colors indicate: Green (4+ Yes), Purple (4+ Yes/Maybe), Orange (Less than 4). Click a date to select it for your gathering. The randomizer ensures fair rotation of sacred roles among available members.</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-database-compat.min.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXHgx1_Q5HmANF5KKV7p6AIfY2GmG3LYo",
+            authDomain: "big-bear-medicine.firebaseapp.com",
+            databaseURL: "https://big-bear-medicine-default-rtdb.firebaseio.com",
+            projectId: "big-bear-medicine",
+            storageBucket: "big-bear-medicine.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Global variables
+        let currentUser = '';
+        let scheduleData = {};
+
+        // Login function
+        function login() {
+            const memberName = document.getElementById('memberName').value.trim();
+            if (memberName) {
+                currentUser = memberName;
+                document.getElementById('currentUser').textContent = memberName;
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                loadSchedules();
+            }
+        }
+
+        // Generate five-day window based on moon phases
+        function generateFiveDayWindow() {
+            const today = new Date();
+            const days = [];
+            const moonPhases = ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘'];
             
-            <div class="members-list">
-                <label>Sacred Circle Members:</label>
-                <div id="membersList">
-                    <!-- Members will be displayed here -->
-                </div>
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                
+                const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
+                const moonPhase = moonPhases[Math.floor(Math.random() * moonPhases.length)];
+                
+                days.push({
+                    date: date,
+                    label: `${dayOfWeek} ${moonPhase}`,
+                    dayOfWeek: dayOfWeek
+                });
+            }
+            return days;
+        }
+
+        // Format date for display
+        function formatLongDate(date) {
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+
+        // Get attendees for a specific date
+        function getDateAttendees(cardId, dayIndex) {
+            const data = scheduleData[cardId] || {};
+            const attendance = data.attendance || {};
+            const attendees = { yes: [], maybe: [], no: [] };
+            
+            Object.keys(attendance).forEach(member => {
+                const memberDays = attendance[member];
+                if (typeof memberDays === 'object' && memberDays[dayIndex]) {
+                    const status = memberDays[dayIndex];
+                    if (attendees[status]) {
+                        attendees[status].push(member);
+                    }
+                }
+            });
+            
+            return attendees;
+        }
+
+        // Generate attendee chips HTML
+        function generateAttendeeChips(attendees) {
+            let html = '';
+            
+            // Add yes attendees (green)
+            attendees.yes.forEach(name => {
+                html += `<span class="attendee-chip yes">${name}</span>`;
+            });
+            
+            // Add maybe attendees (orange)
+            attendees.maybe.forEach(name => {
+                html += `<span class="attendee-chip maybe">${name}</span>`;
+            });
+            
+            // Add no attendees (red)
+            attendees.no.forEach(name => {
+                html += `<span class="attendee-chip no">${name}</span>`;
+            });
+            
+            return html;
+        }
+
+        // Calculate day attendance status for color coding
+        function calculateDayAttendanceStatus(cardId, dayIndex) {
+            const data = scheduleData[cardId] || {};
+            const attendance = data.attendance || {};
+            
+            let yesCount = 0;
+            let maybeCount = 0;
+            let noCount = 0;
+            let totalResponses = 0;
+            
+            Object.values(attendance).forEach(memberDays => {
+                if (typeof memberDays === 'object' && memberDays[dayIndex]) {
+                    const status = memberDays[dayIndex];
+                    totalResponses++;
+                    if (status === 'yes') {
+                        yesCount++;
+                    } else if (status === 'maybe') {
+                        maybeCount++;
+                    } else if (status === 'no') {
+                        noCount++;
+                    }
+                }
+            });
+            
+            // If everyone said no, make it orange
+            if (totalResponses > 0 && noCount === totalResponses) {
+                return 'orange';
+            }
+            
+            // Green: 4+ people with "yes"
+            if (yesCount >= 4) {
+                return 'green';
+            }
+            // Purple: 4+ people with "yes" OR "maybe" (but less than 4 "yes")
+            else if ((yesCount + maybeCount) >= 4) {
+                return 'purple';
+            }
+            // Orange: Less than 4 people with "yes" OR "maybe"
+            else {
+                return 'orange';
+            }
+        }
+
+        // Update attendance display
+        function updateAttendanceDisplay(cardId) {
+            const data = scheduleData[cardId] || {};
+            const attendance = data.attendance || {};
+            
+            // Count members who said yes to any day
+            const membersAttending = Object.values(attendance).filter(memberDays => {
+                if (typeof memberDays === 'object') {
+                    return Object.values(memberDays).some(status => status === 'yes');
+                }
+                return false;
+            }).length;
+            
+            const countElement = document.querySelector(`[data-card="${cardId}"] .attendance-count`);
+            
+            if (countElement) {
+                countElement.textContent = `${membersAttending} members confirmed attending at least one day`;
+                countElement.className = `attendance-count ${membersAttending >= 4 ? 'status-yes' : 'status-maybe'}`;
+            }
+            
+            // Update date option colors and attendee chips
+            const card = document.querySelector(`[data-card="${cardId}"]`);
+            if (card) {
+                const dateOptions = card.querySelectorAll('.date-option');
+                dateOptions.forEach((option, dayIndex) => {
+                    option.classList.remove('attendance-green', 'attendance-purple', 'attendance-orange');
+                    const status = calculateDayAttendanceStatus(cardId, dayIndex);
+                    option.classList.add(`attendance-${status}`);
+                    
+                    // Update attendee chips for this date
+                    const attendees = getDateAttendees(cardId, dayIndex);
+                    const attendeesContainer = option.querySelector('.date-attendees');
+                    if (attendeesContainer) {
+                        attendeesContainer.innerHTML = generateAttendeeChips(attendees);
+                    }
+                });
+            }
+            
+            // Update randomize button state
+            const randomizeBtn = card?.querySelector('.randomize-btn');
+            if (randomizeBtn) {
+                const selectedDate = data.selectedDate;
+                if (selectedDate !== undefined) {
+                    const eligibleMembers = getEligibleMembersForDay(cardId, selectedDate);
+                    randomizeBtn.disabled = eligibleMembers.length < 2;
+                    randomizeBtn.textContent = eligibleMembers.length < 2 
+                        ? `🎲 Need ${2 - eligibleMembers.length} more "Yes" responses for selected date`
+                        : '🎲 Randomize Roles (Fair Rotation)';
+                } else {
+                    randomizeBtn.disabled = true;
+                    randomizeBtn.textContent = '🎲 Select gathering date first';
+                }
+            }
+        }
+
+        // Update day status for a member
+        async function updateDayStatus(cardId, member, dayIndex, status) {
+            if (!scheduleData[cardId]) {
+                scheduleData[cardId] = {};
+            }
+            if (!scheduleData[cardId].attendance) {
+                scheduleData[cardId].attendance = {};
+            }
+            if (!scheduleData[cardId].attendance[member]) {
+                scheduleData[cardId].attendance[member] = {};
+            }
+            
+            scheduleData[cardId].attendance[member][dayIndex] = status;
+            
+            await saveScheduleData(cardId, scheduleData[cardId]);
+            updateAttendanceDisplay(cardId);
+        }
+
+        // Get eligible members for a specific day
+        function getEligibleMembersForDay(cardId, dayIndex) {
+            const data = scheduleData[cardId] || {};
+            const attendance = data.attendance || {};
+            
+            return Object.keys(attendance).filter(member => {
+                const memberDays = attendance[member];
+                return typeof memberDays === 'object' && memberDays[dayIndex] === 'yes';
+            });
+        }
+
+        // Select a date for the gathering
+        async function selectDate(cardId, dateIndex) {
+            const data = scheduleData[cardId] || {};
+            data.selectedDate = dateIndex;
+            
+            scheduleData[cardId] = data;
+            
+            await saveScheduleData(cardId, data);
+            
+            updateAttendanceDisplay(cardId);
+            
+            // Update visual selection
+            const card = document.querySelector(`[data-card="${cardId}"]`);
+            if (card) {
+                const dateOptions = card.querySelectorAll('.date-option');
+                dateOptions.forEach((option, index) => {
+                    if (index === dateIndex) {
+                        option.classList.add('selected');
+                    } else {
+                        option.classList.remove('selected');
+                    }
+                });
+            }
+            
+            generateSchedule();
+        }
+
+        // Randomize roles fairly
+        async function randomizeRoles(cardId) {
+            const data = scheduleData[cardId] || {};
+            
+            if (data.selectedDate === undefined) {
+                alert('Please select a gathering date first');
+                return;
+            }
+            
+            const eligibleMembers = getEligibleMembersForDay(cardId, data.selectedDate);
+            
+            if (eligibleMembers.length < 2) {
+                alert('Need at least 2 members who said "Yes" for the selected date');
+                return;
+            }
+            
+            // Simple fair randomization
+            const shuffled = [...eligibleMembers].sort(() => Math.random() - 0.5);
+            
+            data.host = shuffled[0];
+            data.leader = shuffled[1] || shuffled[0];
+            
+            scheduleData[cardId] = data;
+            await saveScheduleData(cardId, data);
+            generateSchedule();
+        }
+
+        // Save data field
+        async function saveDataField(cardId, field, value) {
+            if (!scheduleData[cardId]) {
+                scheduleData[cardId] = {};
+            }
+            scheduleData[cardId][field] = value;
+            await saveScheduleData(cardId, scheduleData[cardId]);
+            generateSchedule();
+        }
+
+        // Save schedule data to Firebase
+        async function saveScheduleData(cardId, data) {
+            try {
+                await database.ref(`schedules/${cardId}`).set(data);
+                document.getElementById('syncStatus').textContent = '✅ Synced with Firebase';
+                document.getElementById('syncStatus').style.background = 'rgba(34, 197, 94, 0.2)';
+                document.getElementById('syncStatus').style.color = '#22c55e';
+                document.getElementById('syncStatus').style.borderColor = 'rgba(34, 197, 94, 0.4)';
+            } catch (error) {
+                console.error('Error saving to Firebase:', error);
+                document.getElementById('syncStatus').textContent = '❌ Sync failed';
+                document.getElementById('syncStatus').style.background = 'rgba(239, 68, 68, 0.2)';
+                document.getElementById('syncStatus').style.color = '#ef4444';
+                document.getElementById('syncStatus').style.borderColor = '
