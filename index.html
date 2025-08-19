@@ -1572,19 +1572,23 @@ function generateAttendeeChips(attendees) {
                     
                     <div class="date-selection">
                         <label>Select Sacred Gathering Date:</label>
-                        <div class="date-options">
-                            ${fiveDayWindow.map((day, dayIndex) => {
-                                const status = calculateDayAttendanceStatus(cardId, dayIndex);
-                                return `
-                                    <div class="date-option ${savedData.selectedDate === dayIndex ? 'selected' : ''} attendance-${status}"
-                                         onclick="selectDate('${cardId}', ${dayIndex})">
-                                        <div class="day-label">${day.label}</div>
-                                        <div class="date-num">${day.date.getDate()}</div>
-                                        <div style="font-size: 10px;">${day.date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
+                       <div class="date-options">
+    ${fiveDayWindow.map((day, dayIndex) => {
+        const status = calculateDayAttendanceStatus(cardId, dayIndex);
+        const attendees = getDateAttendees(cardId, dayIndex);
+        return `
+            <div class="date-option ${savedData.selectedDate === dayIndex ? 'selected' : ''} attendance-${status}"
+                 onclick="selectDate('${cardId}', ${dayIndex})">
+                <div class="day-label">${day.label}</div>
+                <div class="date-num">${day.date.getDate()}</div>
+                <div style="font-size: 10px;">${day.date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                <div class="date-attendees">
+                    ${generateAttendeeChips(attendees)}
+                </div>
+            </div>
+        `;
+    }).join('')}
+</div>
                     </div>
                     
                     <div class="roles-section">
