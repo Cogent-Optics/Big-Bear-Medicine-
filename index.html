@@ -1683,11 +1683,11 @@ function generateAttendeeChips(attendees) {
                                 return `
                                     <div class="attendance-item">
                                         <strong style="display: block; margin-bottom: 10px; color: #F59E0B;">${member}</strong>
-                                        <div class="day-attendance-item ${dayStatus}">
-                                            ${fiveDayWindow.map((day, dayIndex) => {
-                                                const dayStatus = memberAttendance[dayIndex] || 'maybe';
-                                                return `
-                                                    <div class="day-attendance-item">
+                                        <div class="daily-attendance-grid">
+    ${fiveDayWindow.map((day, dayIndex) => {
+        const dayStatus = memberAttendance[dayIndex] || 'maybe';
+        return `
+            <div class="day-attendance-item ${dayStatus}">
                                                         <div class="day-header">
                                                             <span style="font-weight: bold; font-size: 11px;">${day.date.getDate()}</span>
                                                             <span style="font-size: 9px; color: #9CA3AF;">${day.label}</span>
