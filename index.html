@@ -617,7 +617,37 @@
     background: rgba(239, 68, 68, 0.8);
     color: white;
 }
-        
+     .attendee-chip.no {
+    background: rgba(239, 68, 68, 0.8);
+    color: white;
+}
+
+.selected-date-display {
+    margin-bottom: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.selected-date-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #F59E0B;
+    margin-top: 5px;
+}
+
+.attendee-chip {
+    display: inline-block;
+    margin: 2px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.2;
+    min-width: 20px;
+}   
         .attendance-item select {
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
@@ -1617,12 +1647,18 @@ function generateAttendeeChips(attendees) {
                         </div>
                     </div>
                     
-                    <div class="meeting-info">
-                        <div class="meeting-time">
-                            <label>Gathering Time</label>
-                            <input type="time" value="${savedData.time || '19:00'}" 
-                                   onchange="saveDataField('${cardId}', 'time', this.value)">
-                        </div>
+                   <div class="meeting-info">
+    <div class="selected-date-display">
+        <label>Selected Sacred Gathering Date</label>
+        <div class="selected-date-value">
+            ${savedData.selectedDate !== undefined ? formatLongDate(fiveDayWindow[savedData.selectedDate].date) + ' (' + fiveDayWindow[savedData.selectedDate].label + ')' : 'Please select a gathering date above'}
+        </div>
+    </div>
+    <div class="meeting-time">
+        <label>Gathering Time</label>
+        <input type="time" value="${savedData.time || '19:00'}" 
+               onchange="saveDataField('${cardId}', 'time', this.value)">
+    </div>
                         
                         <div class="meeting-location">
                             <label>Sacred Space Location</label>
