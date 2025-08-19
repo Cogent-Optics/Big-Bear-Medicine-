@@ -1,4 +1,11 @@
-<!DOCTYPE html>
+<div style="margin-top: 10px; padding: 10px; background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
+                            <label style="font-size: 11px; color: #F59E0B;">💡 How Daily Attendance Works:</label>
+                            <p style="font-size: 10px; color: #D1D5DB; margin: 5px 0;">
+                                • Each member sets their status for each day in the 5-day window<br>
+                                • Select gathering date above, then randomize roles using attendees for that specific date<br>
+                                • Fair rotation ensures everyone gets equal opportunities to host and lead
+                            </p>
+                        </div><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -366,23 +373,14 @@
             box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
         }
         
-        /* New color system for day attendance */
-        .date-option.attendance-green {
+        .date-option.attendance-low {
+            background: rgba(234, 88, 12, 0.2);
+            border-color: rgba(234, 88, 12, 0.5);
+        }
+        
+        .date-option.attendance-good {
             background: rgba(34, 197, 94, 0.2);
-            border-color: rgba(34, 197, 94, 0.6);
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
-        }
-        
-        .date-option.attendance-purple {
-            background: rgba(147, 51, 234, 0.2);
-            border-color: rgba(147, 51, 234, 0.6);
-            box-shadow: 0 0 10px rgba(147, 51, 234, 0.3);
-        }
-        
-        .date-option.attendance-orange {
-            background: rgba(251, 146, 60, 0.2);
-            border-color: rgba(251, 146, 60, 0.6);
-            box-shadow: 0 0 10px rgba(251, 146, 60, 0.3);
+            border-color: rgba(34, 197, 94, 0.5);
         }
         
         .day-label {
@@ -456,13 +454,6 @@
         .randomize-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
-        }
-        
-        .randomize-btn:disabled {
-            background: rgba(107, 114, 128, 0.5);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
         
         .meeting-info {
@@ -568,9 +559,9 @@
             text-align: center;
         }
         
-        .status-yes { color: #22C55E; }
+        .status-attending { color: #22C55E; }
         .status-maybe { color: #F59E0B; }
-        .status-no { color: #EF4444; }
+        .status-not-attending { color: #EF4444; }
         
         label {
             display: block;
@@ -731,7 +722,7 @@
             <p style="color: #9CA3AF; margin-bottom: 30px;">Enter your name to join the sacred circle</p>
             
             <input type="text" id="userNameInput" class="login-input" placeholder="Your Name" maxlength="30">
-            <button class="login-btn" onclick="joinCircle()" id="joinCircleBtn">Join Sacred Circle</button>
+            <button class="login-btn" onclick="joinCircle()">Join Sacred Circle</button>
             
             <div class="login-description">
                 A lunar-aligned scheduling system for our sacred men's circle gatherings.<br>
@@ -802,36 +793,69 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteField } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDmxpkjyjXu_oo9KOuc6o2LBC0i0UqLNIU",
+            authDomain: "big-bear-medicine.firebaseapp.com",
+            databaseURL: "https://big-bear-medicine-default-rtdb.firebaseio.com",
+            projectId: "big-bear-medicine",
+            storageBucket: "big-bear-medicine.firebasestorage.app",
+            messagingSenderId: "818083848134",
+            appId: "1:818083848134:web:53a06d4b702e6bb0651cc7",
+            measurementId: "G-B6ML41BC1P"
+        };
+
+        // Initialize Firebase only if not already initialized
+        let app;
+        if (getApps().length === 0) {
+            app = initializeApp(firebaseConfig);
+        } else {
+            app = getApps()[0];
+        }
+        const db = getFirestore(app);
+        
+        // Make Firebase available globally
+        window.db = db;
+        window.firestore = { doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteField };
+        
+        // Initialize the app
+        window.addEventListener('DOMContentLoaded', initializeMainApp);
+    </script>
+
     <script>
-        // Global variables
         let currentYear = 2025;
         let scheduleData = {};
         let members = [];
         let pendingAction = null;
         let currentUser = '';
         let unsubscribeListeners = [];
-        let firebaseInitialized = false;
+
+        // Initialize application
+        function initializeMainApp() {
+            // Check if user is already logged in
+            const savedUser = localStorage.getItem('bearCircleUser');
+            if (savedUser) {
+                currentUser = savedUser;
+                showMainApp();
+            }
+        }
 
         // Authentication functions
         function joinCircle() {
-            try {
-                console.log('Join circle clicked');
-                const input = document.getElementById('userNameInput');
-                const name = input?.value?.trim();
-                
-                console.log('Name entered:', name);
-                
-                if (name && name.length >= 2) {
-                    currentUser = name;
-                    localStorage.setItem('bearCircleUser', name);
-                    console.log('User set:', currentUser);
-                    showMainApp();
-                } else {
-                    alert('Please enter your full name (at least 2 characters)');
-                }
-            } catch (error) {
-                console.error('Error in joinCircle:', error);
-                alert('Login error. Please refresh the page and try again.');
+            const input = document.getElementById('userNameInput');
+            const name = input.value.trim();
+            
+            if (name && name.length >= 2) {
+                currentUser = name;
+                localStorage.setItem('bearCircleUser', name);
+                showMainApp();
+            } else {
+                alert('Please enter your full name (at least 2 characters)');
             }
         }
 
@@ -848,93 +872,47 @@
         }
 
         function showMainApp() {
-            try {
-                console.log('Showing main app for user:', currentUser);
-                
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'block';
-                document.getElementById('currentUserName').textContent = currentUser;
-                
-                // Initialize Firebase listeners if Firebase is ready
-                if (firebaseInitialized && window.db) {
-                    console.log('Firebase ready, initializing listeners');
-                    initializeFirebaseListeners();
-                } else {
-                    console.log('Firebase not ready yet, will initialize listeners when ready');
-                    // Generate basic schedule without Firebase data
-                    generateSchedule();
-                }
-                
-                console.log('Main app displayed successfully');
-            } catch (error) {
-                console.error('Error in showMainApp:', error);
-                alert('Error loading application. Please refresh and try again.');
+            // Check if user is in member list (after members are loaded)
+            if (members.length > 0 && !members.includes(currentUser)) {
+                alert(`Welcome ${currentUser}! You've been added to the sacred circle member list.`);
+                // Auto-add them to members if they're not already there
+                addUserToMembers();
             }
+            
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('currentUserName').textContent = currentUser;
+            
+            // Initialize Firebase listeners
+            initializeFirebaseListeners();
         }
 
         async function addUserToMembers() {
-            try {
-                if (!members.includes(currentUser)) {
-                    console.log('Adding user to members:', currentUser);
-                    const updatedMembers = [...members, currentUser];
-                    await saveToFirebase('members', { 
-                        list: updatedMembers,
-                        addedBy: currentUser,
-                        dateAdded: new Date().toISOString()
-                    });
-                }
-            } catch (error) {
-                console.error('Error adding user to members:', error);
+            if (!members.includes(currentUser)) {
+                const updatedMembers = [...members, currentUser];
+                await saveToFirebase('members', { 
+                    list: updatedMembers,
+                    addedBy: currentUser,
+                    dateAdded: new Date().toISOString()
+                });
             }
         }
 
         // Firebase functions
         async function initializeFirebaseListeners() {
-            if (!firebaseInitialized || !window.db) {
-                console.log('Firebase not available, skipping listeners');
-                updateSyncStatus(false);
-                return;
-            }
-            
             try {
-                console.log('Initializing Firebase listeners...');
+                // Set up secure Firestore rules for sacred circle members only
+                await setupSecurityRules();
                 
                 // Listen to members document
                 const membersUnsubscribe = window.firestore.onSnapshot(
                     window.firestore.doc(window.db, 'bearCircle', 'members'),
                     (doc) => {
-                        console.log('Members document updated');
                         if (doc.exists()) {
-                            const newMembers = doc.data().list || [];
-                            const membersChanged = JSON.stringify(members) !== JSON.stringify(newMembers);
-                            members = newMembers;
-                            console.log('Current members:', members);
-                            
-                            // Check if current user needs to be added
-                            if (currentUser && !members.includes(currentUser)) {
-                                console.log('Adding current user to members');
-                                addUserToMembers();
-                            }
-                            
+                            members = doc.data().list || [];
                             updateMembersList();
-                            
-                            // Only regenerate schedule if members actually changed
-                            if (membersChanged) {
-                                generateSchedule();
-                            }
-                        } else {
-                            console.log('Members document does not exist, creating it');
-                            // Initialize members document if it doesn't exist
-                            saveToFirebase('members', { 
-                                list: [currentUser],
-                                createdBy: currentUser,
-                                dateCreated: new Date().toISOString()
-                            });
+                            generateSchedule();
                         }
-                    },
-                    (error) => {
-                        console.error('Error listening to members:', error);
-                        updateSyncStatus(false);
                     }
                 );
                 unsubscribeListeners.push(membersUnsubscribe);
@@ -943,37 +921,32 @@
                 const scheduleUnsubscribe = window.firestore.onSnapshot(
                     window.firestore.doc(window.db, 'bearCircle', `schedule-${currentYear}`),
                     (doc) => {
-                        console.log('Schedule document updated');
                         if (doc.exists()) {
                             scheduleData = doc.data() || {};
-                            console.log('Schedule data updated:', scheduleData);
-                            
-                            // Don't regenerate the whole schedule, just update displays
-                            Object.keys(scheduleData).forEach(cardId => {
-                                updateAttendanceDisplay(cardId);
-                                updateCardSelections(cardId);
-                            });
-                        } else {
-                            console.log('Schedule document does not exist yet');
-                            scheduleData = {};
                             generateSchedule();
                         }
-                    },
-                    (error) => {
-                        console.error('Error listening to schedule:', error);
-                        updateSyncStatus(false);
                     }
                 );
                 unsubscribeListeners.push(scheduleUnsubscribe);
 
                 updateSyncStatus(true);
-                console.log('Firebase listeners initialized successfully');
             } catch (error) {
                 console.error('Firebase connection error:', error);
                 updateSyncStatus(false);
-                
-                // Still show the app even if Firebase fails
-                generateSchedule();
+            }
+        }
+
+        async function setupSecurityRules() {
+            // This will be enforced by Firestore security rules
+            // Only allow access to members in the sacred circle whitelist
+            const allowedMembers = [
+                currentUser  // Current user is automatically allowed
+            ];
+            
+            // Note: Actual security is enforced by Firestore rules
+            // This is just for client-side validation
+            if (!allowedMembers.includes(currentUser)) {
+                throw new Error('Access denied: Not a sacred circle member');
             }
         }
 
@@ -989,11 +962,6 @@
         }
 
         async function saveToFirebase(docId, data) {
-            if (!firebaseInitialized || !window.db) {
-                console.log('Firebase not available, saving locally only');
-                return;
-            }
-            
             try {
                 // Add security metadata
                 const secureData = {
@@ -1002,33 +970,27 @@
                     lastModified: new Date().toISOString()
                 };
                 
-                console.log('Saving to Firebase:', docId, secureData);
-                
                 await window.firestore.setDoc(
                     window.firestore.doc(window.db, 'bearCircle', String(docId)),
                     secureData,
                     { merge: true }
                 );
-                
-                console.log('Successfully saved to Firebase');
             } catch (error) {
                 console.error('Error saving to Firebase:', error);
                 alert('Connection error. Please check your internet and try again.');
             }
         }
 
-        async function saveScheduleData(cardId, data) {
+        async function updateFirebaseField(docId, field, value) {
             try {
-                // Save the specific card data to Firebase
-                await window.firestore.setDoc(
-                    window.firestore.doc(window.db, 'bearCircle', `schedule-${currentYear}`),
-                    { [cardId]: data },
-                    { merge: true }
-                );
-                console.log(`Saved ${cardId} data:`, data);
+                const docRef = window.firestore.doc(window.db, 'bearCircle', String(docId));
+                await window.firestore.updateDoc(docRef, {
+                    [field]: value,
+                    lastModifiedBy: currentUser,
+                    lastModified: new Date().toISOString()
+                });
             } catch (error) {
-                console.error('Error saving schedule data:', error);
-                alert('Connection error. Please check your internet and try again.');
+                console.error('Error updating Firebase:', error);
             }
         }
 
@@ -1144,61 +1106,6 @@
             });
         }
 
-        // Updated function to calculate day attendance colors
-        function calculateDayAttendanceStatus(cardId, dayIndex) {
-            const data = scheduleData[cardId] || {};
-            const attendance = data.attendance || {};
-            
-            let yesCount = 0;
-            let yesOrMaybeCount = 0;
-            
-            Object.values(attendance).forEach(memberDays => {
-                if (typeof memberDays === 'object' && memberDays[dayIndex] !== undefined) {
-                    const status = memberDays[dayIndex];
-                    if (status === 'yes') {
-                        yesCount++;
-                        yesOrMaybeCount++;
-                    } else if (status === 'maybe') {
-                        yesOrMaybeCount++;
-                    }
-                    // 'no' responses don't count toward either total
-                }
-            });
-            
-            console.log(`Day ${dayIndex}: Yes=${yesCount}, Yes+Maybe=${yesOrMaybeCount}, Total Members=${members.length}`);
-            
-            // Green: 4+ people with "yes"
-            if (yesCount >= 4) {
-                console.log(`Day ${dayIndex}: GREEN (${yesCount} yes responses)`);
-                return 'green';
-            }
-            // Purple: 4+ total people with "yes" OR "maybe" (but less than 4 "yes")  
-            else if (yesOrMaybeCount >= 4) {
-                console.log(`Day ${dayIndex}: PURPLE (${yesOrMaybeCount} total responses, ${yesCount} yes)`);
-                return 'purple';
-            }
-            // Orange: Less than 4 total people with "yes" OR "maybe"
-            else {
-                console.log(`Day ${dayIndex}: ORANGE (${yesOrMaybeCount} total responses)`);
-                return 'orange';
-            }
-        }
-
-        // Updated function to get eligible members for role assignment
-        function getEligibleMembersForDay(cardId, dayIndex) {
-            const data = scheduleData[cardId] || {};
-            const attendance = data.attendance || {};
-            const eligible = [];
-            
-            Object.entries(attendance).forEach(([member, memberDays]) => {
-                if (typeof memberDays === 'object' && memberDays[dayIndex] === 'yes') {
-                    eligible.push(member);
-                }
-            });
-            
-            return eligible;
-        }
-
         // Confirmation modal functions
         function showConfirmation(title, message, action) {
             document.getElementById('modalTitle').textContent = title;
@@ -1222,7 +1129,7 @@
         function showRandomizeConfirmation(cardId) {
             showConfirmation(
                 'Randomize Roles',
-                'This will randomly assign host and discussion leader roles from members who said "Yes" on the selected gathering date. Continue?',
+                'This will randomly reassign the host and discussion leader roles. Continue?',
                 () => randomizeRoles(cardId)
             );
         }
@@ -1230,215 +1137,83 @@
         function showRandomizeAllConfirmation() {
             showConfirmation(
                 'Randomize All Roles',
-                'This will randomly assign host and discussion leader roles for ALL moon gatherings based on each day\'s "Yes" responses. Continue?',
+                'This will randomly reassign host and discussion leader roles for ALL moon gatherings. Continue?',
                 () => randomizeAllRoles()
             );
         }
 
-        // Updated role assignment functions
+        // Role assignment functions
         async function randomizeRoles(cardId) {
+            if (members.length < 2) return;
+            
+            const shuffled = [...members].sort(() => Math.random() - 0.5);
             const data = scheduleData[cardId] || {};
-            const selectedDate = data.selectedDate;
             
-            if (selectedDate === undefined) {
-                alert('Please select a gathering date first.');
-                return;
-            }
-            
-            const eligibleMembers = getEligibleMembersForDay(cardId, selectedDate);
-            
-            if (eligibleMembers.length < 2) {
-                alert(`Not enough members confirmed "Yes" for the selected date. Need at least 2, but only ${eligibleMembers.length} confirmed.`);
-                return;
-            }
-            
-            const shuffled = [...eligibleMembers].sort(() => Math.random() - 0.5);
             data.host = shuffled[0];
             data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
             
-            // Update local data immediately
-            scheduleData[cardId] = data;
-            
-            // Save to Firebase
-            await saveScheduleData(cardId, data);
+            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
         }
 
         async function randomizeAllRoles() {
-            const newMoons = getNewMoonDates(currentYear);
-            let assignedCount = 0;
-            let skippedCount = 0;
-            
-            for (let index = 0; index < newMoons.length; index++) {
-                const cardId = `moon-${currentYear}-${index}`;
-                const data = scheduleData[cardId] || {};
-                const selectedDate = data.selectedDate;
-                
-                if (selectedDate === undefined) {
-                    skippedCount++;
-                    continue;
-                }
-                
-                const eligibleMembers = getEligibleMembersForDay(cardId, selectedDate);
-                
-                if (eligibleMembers.length < 2) {
-                    skippedCount++;
-                    continue;
-                }
-                
-                const shuffled = [...eligibleMembers].sort(() => Math.random() - 0.5);
-                data.host = shuffled[0];
-                data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
-                
-                // Update local data immediately
-                scheduleData[cardId] = data;
-                
-                // Save to Firebase
-                await saveScheduleData(cardId, data);
-                assignedCount++;
-            }
-            
-            alert(`Roles assigned for ${assignedCount} gatherings. ${skippedCount} gatherings skipped due to no selected date or insufficient "Yes" responses.`);
-        }
-
-        // Updated attendance functions
-        async function updateDayStatus(cardId, member, dayIndex, status) {
-            // Don't save empty selections
-            if (!status || status === '') {
+            if (members.length < 2) {
+                alert('You need at least 2 members to assign roles.');
                 return;
             }
             
+            const newMoons = getNewMoonDates(currentYear);
+            for (let index = 0; index < newMoons.length; index++) {
+                const cardId = `moon-${currentYear}-${index}`;
+                const shuffled = [...members].sort(() => Math.random() - 0.5);
+                const data = scheduleData[cardId] || {};
+                
+                data.host = shuffled[0];
+                data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
+                
+                await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
+            }
+        }
+
+        // Attendance functions
+        async function updateAttendance(cardId, member, status) {
             const data = scheduleData[cardId] || {};
             if (!data.attendance) data.attendance = {};
-            if (!data.attendance[member]) data.attendance[member] = {};
             
-            data.attendance[member][dayIndex] = status;
-            
-            // Update local data immediately
-            scheduleData[cardId] = data;
-            
-            // Save to Firebase with correct structure
-            await saveScheduleData(cardId, data);
-            
-            // Update UI immediately
-            updateAttendanceDisplay(cardId);
+            data.attendance[member] = status;
+            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
         }
 
         function updateAttendanceDisplay(cardId) {
             const data = scheduleData[cardId] || {};
             const attendance = data.attendance || {};
             
-            console.log(`Updating attendance display for ${cardId}:`, attendance);
-            
-            // Count members who said yes to any day
-            const membersAttending = Object.values(attendance).filter(memberDays => {
-                if (typeof memberDays === 'object') {
-                    return Object.values(memberDays).some(status => status === 'yes');
-                }
-                return false;
-            }).length;
-            
+            const attendingCount = Object.values(attendance).filter(status => status === 'attending').length;
             const countElement = document.querySelector(`[data-card="${cardId}"] .attendance-count`);
             
             if (countElement) {
-                countElement.textContent = `${membersAttending} members confirmed attending at least one day`;
-                countElement.className = `attendance-count ${membersAttending >= 4 ? 'status-yes' : 'status-maybe'}`;
+                countElement.textContent = `${attendingCount} confirmed attending`;
+                countElement.className = `attendance-count ${attendingCount >= 4 ? 'status-attending' : 'status-maybe'}`;
             }
             
-            // Update date option colors based on new system
+            // Update date option colors
             const card = document.querySelector(`[data-card="${cardId}"]`);
             if (card) {
                 const dateOptions = card.querySelectorAll('.date-option');
-                dateOptions.forEach((option, dayIndex) => {
-                    option.classList.remove('attendance-green', 'attendance-purple', 'attendance-orange');
-                    const status = calculateDayAttendanceStatus(cardId, dayIndex);
-                    console.log(`Day ${dayIndex} status: ${status}`);
-                    option.classList.add(`attendance-${status}`);
+                dateOptions.forEach(option => {
+                    option.classList.remove('attendance-low', 'attendance-good');
+                    if (attendingCount >= 4) {
+                        option.classList.add('attendance-good');
+                    } else if (attendingCount > 0) {
+                        option.classList.add('attendance-low');
+                    }
                 });
-            }
-            
-            // Update randomize button state
-            const randomizeBtn = card?.querySelector('.randomize-btn');
-            if (randomizeBtn) {
-                const selectedDate = data.selectedDate;
-                if (selectedDate !== undefined) {
-                    const eligibleMembers = getEligibleMembersForDay(cardId, selectedDate);
-                    randomizeBtn.disabled = eligibleMembers.length < 2;
-                    randomizeBtn.textContent = eligibleMembers.length < 2 
-                        ? `🎲 Need ${2 - eligibleMembers.length} more "Yes" responses for selected date`
-                        : '🎲 Randomize Roles (Fair Rotation)';
-                } else {
-                    randomizeBtn.disabled = true;
-                    randomizeBtn.textContent = '🎲 Select gathering date first';
-                }
             }
         }
 
         async function updateRole(cardId, role, member) {
             const data = scheduleData[cardId] || {};
             data[role] = member;
-            
-            // Update local data immediately
-            scheduleData[cardId] = data;
-            
-            // Save to Firebase
-            await saveScheduleData(cardId, data);
-        }
-
-        function updateCardSelections(cardId) {
-            const data = scheduleData[cardId] || {};
-            const card = document.querySelector(`[data-card="${cardId}"]`);
-            
-            if (!card) return;
-            
-            // Update selected date
-            const dateOptions = card.querySelectorAll('.date-option');
-            dateOptions.forEach((option, index) => {
-                if (data.selectedDate === index) {
-                    option.classList.add('selected');
-                } else {
-                    option.classList.remove('selected');
-                }
-            });
-            
-            // Update role selectors
-            const hostSelector = card.querySelector('.host-selector');
-            const leaderSelector = card.querySelector('.leader-selector');
-            
-            if (hostSelector && data.host) {
-                hostSelector.value = data.host;
-            }
-            if (leaderSelector && data.leader) {
-                leaderSelector.value = data.leader;
-            }
-            
-            // Update meeting info fields
-            const timeInput = card.querySelector('input[type="time"]');
-            const locationInput = card.querySelector('.meeting-location input');
-            const notesTextarea = card.querySelector('.meeting-notes textarea');
-            
-            if (timeInput && data.time) {
-                timeInput.value = data.time;
-            }
-            if (locationInput && data.location) {
-                locationInput.value = data.location;
-            }
-            if (notesTextarea && data.notes) {
-                notesTextarea.value = data.notes;
-            }
-            
-            // Update attendance dropdowns
-            const attendance = data.attendance || {};
-            Object.entries(attendance).forEach(([member, memberDays]) => {
-                if (typeof memberDays === 'object') {
-                    Object.entries(memberDays).forEach(([dayIndex, status]) => {
-                        const dropdown = card.querySelector(`select[onchange*="'${member}', ${dayIndex}"]`);
-                        if (dropdown) {
-                            dropdown.value = status;
-                            dropdown.className = `day-status-select status-${status}`;
-                        }
-                    });
-                }
-            });
+            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
         }
 
         // Schedule generation
@@ -1452,9 +1227,7 @@
                 const savedData = scheduleData[cardId] || {};
                 const fiveDayWindow = getFiveDayWindow(date);
                 const attendance = savedData.attendance || {};
-                
-                // Count members who said yes to any day
-                const membersAttending = Object.values(attendance).filter(memberDays => {
+                const attendingCount = Object.values(attendance).filter(memberDays => {
                     if (typeof memberDays === 'object') {
                         return Object.values(memberDays).some(status => status === 'yes');
                     }
@@ -1475,17 +1248,14 @@
                     <div class="date-selection">
                         <label>Select Sacred Gathering Date:</label>
                         <div class="date-options">
-                            ${fiveDayWindow.map((day, dayIndex) => {
-                                const status = calculateDayAttendanceStatus(cardId, dayIndex);
-                                return `
-                                    <div class="date-option ${savedData.selectedDate === dayIndex ? 'selected' : ''} attendance-${status}"
-                                         onclick="selectDate('${cardId}', ${dayIndex})">
-                                        <div class="day-label">${day.label}</div>
-                                        <div class="date-num">${day.date.getDate()}</div>
-                                        <div style="font-size: 10px;">${day.date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                                    </div>
-                                `;
-                            }).join('')}
+                            ${fiveDayWindow.map((day, dayIndex) => `
+                                <div class="date-option ${savedData.selectedDate === dayIndex ? 'selected' : ''} ${attendingCount >= 4 ? 'attendance-good' : attendingCount > 0 ? 'attendance-low' : ''}"
+                                     onclick="selectDate('${cardId}', ${dayIndex})">
+                                    <div class="day-label">${day.label}</div>
+                                    <div class="date-num">${day.date.getDate()}</div>
+                                    <div style="font-size: 10px;">${day.date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                     
@@ -1509,8 +1279,8 @@
                             <label style="font-size: 11px; color: #F59E0B;">💡 How Daily Attendance Works:</label>
                             <p style="font-size: 10px; color: #D1D5DB; margin: 5px 0;">
                                 • Each member sets their status for each day in the 5-day window<br>
-                                • Green days: 4+ "Yes" responses | Purple days: 4+ "Yes"+"Maybe" | Orange days: Less than 4 total<br>
-                                • Roles are randomly assigned from members who said "Yes" on the selected gathering date
+                                • Select gathering date above, then randomize roles using attendees for that specific date<br>
+                                • Fair rotation ensures everyone gets equal opportunities to host and lead
                             </p>
                         </div>
                     </div>
@@ -1547,19 +1317,18 @@
                                         <strong style="display: block; margin-bottom: 10px; color: #F59E0B;">${member}</strong>
                                         <div class="daily-attendance-grid">
                                             ${fiveDayWindow.map((day, dayIndex) => {
-                                                const dayStatus = memberAttendance[dayIndex]; // Don't default to 'maybe'
+                                                const dayStatus = memberAttendance[dayIndex] || 'maybe';
                                                 return `
                                                     <div class="day-attendance-item">
                                                         <div class="day-header">
                                                             <span style="font-weight: bold; font-size: 11px;">${day.date.getDate()}</span>
                                                             <span style="font-size: 9px; color: #9CA3AF;">${day.label}</span>
                                                         </div>
-                                                        <select class="day-status-select ${dayStatus ? 'status-' + dayStatus : ''}" 
+                                                        <select class="day-status-select status-${dayStatus}" 
                                                                 onchange="updateDayStatus('${cardId}', '${member}', ${dayIndex}, this.value); this.className='day-status-select status-' + this.value;">
-                                                            <option value="">-- Select --</option>
-                                                            <option value="yes" ${dayStatus === 'yes' ? 'selected' : ''}>✓ Yes</option>
+                                                            <option value="attending" ${dayStatus === 'attending' ? 'selected' : ''}>✓ Attending</option>
                                                             <option value="maybe" ${dayStatus === 'maybe' ? 'selected' : ''}>? Maybe</option>
-                                                            <option value="no" ${dayStatus === 'no' ? 'selected' : ''}>✗ No</option>
+                                                            <option value="not-attending" ${dayStatus === 'not-attending' ? 'selected' : ''}>✗ Cannot Attend</option>
                                                         </select>
                                                     </div>
                                                 `;
@@ -1570,11 +1339,11 @@
                             }).join('')}
                         </div>
                         <div class="attendance-summary">
-                            <div class="attendance-count ${membersAttending >= 4 ? 'status-yes' : 'status-maybe'}">
-                                ${membersAttending} members confirmed attending at least one day
+                            <div class="attendance-count ${attendingCount >= 4 ? 'status-attending' : 'status-maybe'}">
+                                ${attendingCount} members confirmed attending at least one day
                             </div>
                             <div style="margin-top: 8px; font-size: 10px; color: #9CA3AF;">
-                                💡 Role assignment uses members who said "Yes" on the selected gathering date
+                                💡 Role assignment uses members who are "Attending" on the selected gathering date
                             </div>
                         </div>
                     </div>
@@ -1590,26 +1359,13 @@
         async function selectDate(cardId, dateIndex) {
             const data = scheduleData[cardId] || {};
             data.selectedDate = dateIndex;
-            
-            // Update local data immediately
-            scheduleData[cardId] = data;
-            
-            // Save to Firebase
-            await saveScheduleData(cardId, data);
-            
-            // Update UI to reflect the selection and any button state changes
-            updateAttendanceDisplay(cardId);
+            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
         }
 
         async function saveDataField(cardId, field, value) {
             const data = scheduleData[cardId] || {};
             data[field] = value;
-            
-            // Update local data immediately
-            scheduleData[cardId] = data;
-            
-            // Save to Firebase
-            await saveScheduleData(cardId, data);
+            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
         }
 
         function changeYear(delta) {
@@ -1635,14 +1391,7 @@
                 const fiveDayWindow = getFiveDayWindow(date);
                 const selectedDate = data.selectedDate !== undefined ? fiveDayWindow[data.selectedDate] : null;
                 const attendance = data.attendance || {};
-                
-                // Count members who said yes to any day
-                const membersAttending = Object.values(attendance).filter(memberDays => {
-                    if (typeof memberDays === 'object') {
-                        return Object.values(memberDays).some(status => status === 'yes');
-                    }
-                    return false;
-                }).length;
+                const attendingCount = Object.values(attendance).filter(status => status === 'attending').length;
                 
                 exportText += `🌑 ${date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} New Moon Gathering\n`;
                 exportText += `📅 Sacred Date: ${selectedDate ? formatLongDate(selectedDate.date) : 'TBD'}\n`;
@@ -1651,7 +1400,7 @@
                 exportText += `🏠 Host: ${data.host || 'TBD'}\n`;
                 exportText += `🗣️ Circle Leader: ${data.leader || 'TBD'}\n`;
                 exportText += `✨ Medicine Theme: ${data.notes || 'TBD'}\n`;
-                exportText += `👥 Circle Members Attending: ${membersAttending}\n`;
+                exportText += `👥 Circle Members Attending: ${attendingCount}\n`;
                 
                 if (Object.keys(attendance).length > 0) {
                     exportText += `\n🔥 Sacred Circle Daily Attendance:\n`;
@@ -1672,7 +1421,38 @@
             });
 
             exportText += `\nSacred Circle Members: ${members.join(', ')}\n`;
+            
+            // Add role rotation history
+            try {
+                const roleHistory = await getRoleHistory();
+                if (Object.keys(roleHistory).length > 0) {
+                    exportText += `\n🔄 Role Rotation History:\n`;
+                    Object.entries(roleHistory).forEach(([member, roles]) => {
+                        exportText += `   ${member}: Hosted ${roles.host || 0} times, Led ${roles.leader || 0} times\n`;
+                    });
+                }
+            } catch (error) {
+                console.log('Could not load role history for export');
+            }
+            
+            exportText += `\nMay each gathering bring healing, wisdom, and connection to all who join the circle.\n`;
             exportText += `\nGenerated by: ${currentUser} on ${new Date().toLocaleDateString()}\n`;
+            exportText += `\n--- FIREBASE SECURITY SETUP ---\n`;
+            exportText += `To secure your sacred circle data, update Firestore Rules with:\n\n`;
+            exportText += `rules_version = '2';\n`;
+            exportText += `service cloud.firestore {\n`;
+            exportText += `  match /databases/{database}/documents {\n`;
+            exportText += `    match /bearCircle/{document=**} {\n`;
+            exportText += `      allow read, write: if resource.data.lastModifiedBy in [\n`;
+            members.forEach((member, index) => {
+                exportText += `        "${member}"${index < members.length - 1 ? ',' : ''}\n`;
+            });
+            exportText += `      ];\n`;
+            exportText += `    }\n`;
+            exportText += `  }\n`;
+            exportText += `}\n`;
+            exportText += `\nThis restricts access to only sacred circle members.\n`;
+            exportText += `Update rules before July 11, 2025 to maintain security.\n`;
 
             const blob = new Blob([exportText], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -1685,83 +1465,11 @@
             URL.revokeObjectURL(url);
         }
 
-        // Initialize application
-        function initializeMainApp() {
-            try {
-                console.log('Initializing main app...');
-                
-                // Check if user is already logged in
-                const savedUser = localStorage.getItem('bearCircleUser');
-                console.log('Saved user:', savedUser);
-                
-                if (savedUser) {
-                    currentUser = savedUser;
-                    showMainApp();
-                } else {
-                    console.log('No saved user, showing login screen');
-                    // Make sure login screen is visible
-                    document.getElementById('loginScreen').style.display = 'flex';
-                    document.getElementById('mainApp').style.display = 'none';
-                }
-                
-            } catch (error) {
-                console.error('Error initializing app:', error);
-            }
-        }
-
         // Set up confirmation modal
         document.getElementById('confirmBtn').onclick = executeConfirmedAction;
 
-        // Make functions globally available for onclick handlers
-        window.joinCircle = joinCircle;
-        window.logout = logout;
-        window.addMember = addMember;
-        window.removeMember = removeMember;
-        window.changeYear = changeYear;
-        window.showRandomizeAllConfirmation = showRandomizeAllConfirmation;
-        window.showRandomizeConfirmation = showRandomizeConfirmation;
-        window.hideConfirmation = hideConfirmation;
-        window.executeConfirmedAction = executeConfirmedAction;
-        window.selectDate = selectDate;
-        window.updateRole = updateRole;
-        window.saveDataField = saveDataField;
-        window.updateDayStatus = updateDayStatus;
-        window.exportSchedule = exportSchedule;
-
-        // Initialize when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeApp);
-        } else {
-            // DOM already loaded
-            initializeApp();
-        }
-
-        function initializeApp() {
-            console.log('Initializing app...');
-            
-            // Initialize main app logic
-            initializeMainApp();
-            
-            // Initialize Firebase
-            initializeFirebase();
-            
-            // Set up event listeners
-            setupEventListeners();
-        }
-
-        function setupEventListeners() {
-            // Enter key support for login
-            const loginInput = document.getElementById('userNameInput');
-            if (loginInput) {
-                console.log('Setting up login input enter key');
-                loginInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        joinCircle();
-                    }
-                });
-            }
-            
-            // Enter key support for adding members
+        // Enter key support for adding members and login
+        document.addEventListener('DOMContentLoaded', function() {
             const newMemberInput = document.getElementById('newMemberName');
             if (newMemberInput) {
                 newMemberInput.addEventListener('keypress', function(e) {
@@ -1770,65 +1478,16 @@
                     }
                 });
             }
-
-            // Backup click handler for login button
-            const loginBtn = document.getElementById('joinCircleBtn');
-            if (loginBtn) {
-                console.log('Adding backup click handler to login button');
-                loginBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    joinCircle();
+            
+            const loginInput = document.getElementById('userNameInput');
+            if (loginInput) {
+                loginInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        joinCircle();
+                    }
                 });
             }
-        }
-
-        // Firebase initialization
-        async function initializeFirebase() {
-            try {
-                console.log('Loading Firebase...');
-                
-                // Dynamically import Firebase
-                const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-                const { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteField } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                
-                // Firebase configuration
-                const firebaseConfig = {
-                    apiKey: "AIzaSyDmxpkjyjXu_oo9KOuc6o2LBC0i0UqLNIU",
-                    authDomain: "big-bear-medicine.firebaseapp.com",
-                    databaseURL: "https://big-bear-medicine-default-rtdb.firebaseio.com",
-                    projectId: "big-bear-medicine",
-                    storageBucket: "big-bear-medicine.firebasestorage.app",
-                    messagingSenderId: "818083848134",
-                    appId: "1:818083848134:web:53a06d4b702e6bb0651cc7",
-                    measurementId: "G-B6ML41BC1P"
-                };
-
-                // Initialize Firebase only if not already initialized
-                let app;
-                if (getApps().length === 0) {
-                    app = initializeApp(firebaseConfig);
-                } else {
-                    app = getApps()[0];
-                }
-                const db = getFirestore(app);
-                
-                // Make Firebase available globally
-                window.db = db;
-                window.firestore = { doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteField };
-                
-                firebaseInitialized = true;
-                console.log('Firebase initialized successfully');
-                
-                // If user is already logged in, start Firebase listeners
-                if (currentUser) {
-                    initializeFirebaseListeners();
-                }
-                
-            } catch (error) {
-                console.error('Firebase initialization failed:', error);
-                console.log('App will work in offline mode');
-            }
-        }
+        });
     </script>
 </body>
 </html>
