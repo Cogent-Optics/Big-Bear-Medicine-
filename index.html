@@ -1479,55 +1479,49 @@ function generateAttendeeChips(attendees) {
             updateAttendanceDisplay(cardId);
         }
 
-        function updateAttendanceDisplay(cardId) {
-            const data = scheduleData[cardId] || {};
-            const attendance = data.attendance || {};
-            
-            console.log(`Updating attendance display for ${cardId}:`, attendance);
-            
-            // Count members who said yes to any day
-            const membersAttending = Object.values(attendance).filter(memberDays => {
-                if (typeof memberDays === 'object') {
-                    return Object.values(memberDays).some(status => status === 'yes');
-                }
-                return false;
-            }).length;
-            
-            const countElement = document.querySelector(`[data-card="${cardId}"] .attendance-count`);
-            
-            if (countElement) {
-                countElement.textContent = `${membersAttending} members confirmed attending at least one day`;
-                countElement.className = `attendance-count ${membersAttending >= 4 ? 'status-yes' : 'status-maybe'}`;
-            }
-            
-            // Update date option colors based on new system
-            const card = document.querySelector(`[data-card="${cardId}"]`);
-            if (card) {
-                const dateOptions = card.querySelectorAll('.date-option');
-                dateOptions.forEach((option, dayIndex) => {
-                    option.classList.remove('attendance-green', 'attendance-purple', 'attendance-orange');
-                    const status = calculateDayAttendanceStatus(cardId, dayIndex);
-                    console.log(`Day ${dayIndex} status: ${status}`);
-                    option.classList.add(`attendance-${status}`);
-                });
-            }
-            
-            // Update randomize button state
-            const randomizeBtn = card?.querySelector('.randomize-btn');
-            if (randomizeBtn) {
-                const selectedDate = data.selectedDate;
-                if (selectedDate !== undefined) {
-                    const eligibleMembers = getEligibleMembersForDay(cardId, selectedDate);
-                    randomizeBtn.disabled = eligibleMembers.length < 2;
-                    randomizeBtn.textContent = eligibleMembers.length < 2 
-                        ? `🎲 Need ${2 - eligibleMembers.length} more "Yes" responses for selected date`
-                        : '🎲 Randomize Roles (Fair Rotation)';
-                } else {
-                    randomizeBtn.disabled = true;
-                    randomizeBtn.textContent = '🎲 Select gathering date first';
-                }
+     function calculateDayAttendanceStatus(cardId, dayIndex) {
+    const data = scheduleData[cardId] || {};
+    const attendance = data.attendance || {};
+    
+    let yesCount = 0;
+    let maybeCount = 0;
+    let noCount = 0;
+    let totalResponses = 0;
+    
+    Object.values(attendance).forEach(memberDays => {
+        if (typeof memberDays === 'object' && memberDays[dayIndex]) {
+            const status = memberDays[dayIndex];
+            totalResponses++;
+            if (status === 'yes') {
+                yesCount++;
+            } else if (status === 'maybe') {
+                maybeCount++;
+            } else if (status === 'no') {
+                noCount++;
             }
         }
+    });
+    
+    console.log(`Day ${dayIndex}: Yes=${yesCount}, Maybe=${maybeCount}, No=${noCount}, Total=${totalResponses}`);
+    
+    // If everyone said no, make it red/orange
+    if (totalResponses > 0 && noCount === totalResponses) {
+        return 'orange';
+    }
+    
+    // Green: 4+ people with "yes"
+    if (yesCount >= 4) {
+        return 'green';
+    }
+    // Purple: 4+ people with "yes" OR "maybe" (but less than 4 "yes")
+    else if ((yesCount + maybeCount) >= 4) {
+        return 'purple';
+    }
+    // Orange: Less than 4 people with "yes" OR "maybe"
+    else {
+        return 'orange';
+    }
+}
 
         async function updateRole(cardId, role, member) {
             const data = scheduleData[cardId] || {};
