@@ -1025,15 +1025,15 @@
         <div class="controls">
             <div class="control-row">
                 <div class="year-selector">
-                    <button onclick="changeYear(-1)">← Previous Year</button>
+                    <button onclick="changeYear(-1)">← Prev.</button>
                     <div class="year-display" id="currentYear">2025</div>
-                    <button onclick="changeYear(1)">Next Year →</button>
+                    <button onclick="changeYear(1)">Next →</button>
                 </div>
                 
                 <div class="member-management">
                     <input type="text" id="newMemberName" class="member-input" placeholder="Add sacred circle member...">
                     <button class="btn btn-success" onclick="addMember()">Add Member</button>
-                    <button class="btn btn-warning" onclick="showRandomizeAllConfirmation()">🎲 Randomize All Roles (Fair Rotation)</button>
+                    <button class="btn btn-warning" onclick="showRandomizeAllConfirmation()">🎲 Randomize All Roles</button>
                 </div>
             </div>
             
@@ -1692,7 +1692,7 @@
                                 ${members.map(member => `<option value="${member}" ${savedData.leader === member ? 'selected' : ''}>${member}</option>`).join('')}
                             </select>
                         </div>
-                        <button class="randomize-btn" onclick="showRandomizeConfirmation('${cardId}')">🎲 Randomize Roles (Fair Rotation)</button>
+                        <button class="randomize-btn" onclick="showRandomizeConfirmation('${cardId}')">🎲 Randomize Roles</button>
                     </div>
                     
                     <div class="attendance-section">
