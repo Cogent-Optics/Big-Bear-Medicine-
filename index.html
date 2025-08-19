@@ -1,11 +1,4 @@
-<div style="margin-top: 10px; padding: 10px; background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
-                            <label style="font-size: 11px; color: #F59E0B;">💡 How Daily Attendance Works:</label>
-                            <p style="font-size: 10px; color: #D1D5DB; margin: 5px 0;">
-                                • Each member sets their status for each day in the 5-day window<br>
-                                • Select gathering date above, then randomize roles using attendees for that specific date<br>
-                                • Fair rotation ensures everyone gets equal opportunities to host and lead
-                            </p>
-                        </div><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -373,14 +366,20 @@
             box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
         }
         
-        .date-option.attendance-low {
-            background: rgba(234, 88, 12, 0.2);
-            border-color: rgba(234, 88, 12, 0.5);
+        /* New attendance-based colors */
+        .date-option.attendance-green {
+            background: rgba(34, 197, 94, 0.3);
+            border-color: rgba(34, 197, 94, 0.6);
         }
         
-        .date-option.attendance-good {
-            background: rgba(34, 197, 94, 0.2);
-            border-color: rgba(34, 197, 94, 0.5);
+        .date-option.attendance-purple {
+            background: rgba(124, 58, 237, 0.3);
+            border-color: rgba(124, 58, 237, 0.6);
+        }
+        
+        .date-option.attendance-red {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: rgba(239, 68, 68, 0.6);
         }
         
         .day-label {
@@ -394,6 +393,79 @@
             font-size: 16px;
             margin: 4px 0;
             font-weight: 600;
+        }
+        
+        /* Date confirmation section */
+        .date-confirmation {
+            background: rgba(245, 158, 11, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            text-align: center;
+        }
+        
+        .confirm-date-btn {
+            background: linear-gradient(45deg, #F59E0B, #FBBF24);
+            color: #1F2937;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+        
+        .confirm-date-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+        
+        .confirm-date-btn:disabled {
+            background: rgba(156, 163, 175, 0.5);
+            color: rgba(255, 255, 255, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .confirmed-date {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.5);
+            color: #22C55E;
+        }
+        
+        /* Member status display under dates */
+        .date-member-status {
+            margin-top: 8px;
+            font-size: 10px;
+            min-height: 15px;
+        }
+        
+        .member-status-name {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin: 1px;
+            font-size: 9px;
+            font-weight: 500;
+        }
+        
+        .member-status-yes {
+            background: rgba(34, 197, 94, 0.8);
+            color: white;
+        }
+        
+        .member-status-maybe {
+            background: rgba(245, 158, 11, 0.8);
+            color: white;
+        }
+        
+        .member-status-no {
+            background: rgba(239, 68, 68, 0.8);
+            color: white;
         }
         
         .roles-section {
@@ -540,6 +612,25 @@
             width: 100%;
         }
         
+        /* Color coding for status selects */
+        .status-yes {
+            background: rgba(34, 197, 94, 0.3) !important;
+            border-color: rgba(34, 197, 94, 0.6) !important;
+            color: #22C55E !important;
+        }
+        
+        .status-maybe {
+            background: rgba(245, 158, 11, 0.3) !important;
+            border-color: rgba(245, 158, 11, 0.6) !important;
+            color: #F59E0B !important;
+        }
+        
+        .status-no {
+            background: rgba(239, 68, 68, 0.3) !important;
+            border-color: rgba(239, 68, 68, 0.6) !important;
+            color: #EF4444 !important;
+        }
+        
         .attendance-item select {
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
@@ -558,10 +649,6 @@
             border-radius: 8px;
             text-align: center;
         }
-        
-        .status-attending { color: #22C55E; }
-        .status-maybe { color: #F59E0B; }
-        .status-not-attending { color: #EF4444; }
         
         label {
             display: block;
@@ -742,7 +829,7 @@
             <span class="user-name" id="currentUserName"></span>
             <button class="logout-btn" onclick="logout()">Leave Circle</button>
             <div style="margin-top: 10px; font-size: 11px; color: #9CA3AF;">
-                🔐 Sacred Circle Security: Only authorized members can access this data
+                📧 Sacred Circle Security: Only authorized members can access this data
             </div>
         </div>
         
@@ -788,706 +875,4 @@
             <p id="modalMessage">Are you sure?</p>
             <div class="modal-buttons">
                 <button class="btn btn-success" id="confirmBtn">Yes, Continue</button>
-                <button class="btn btn-danger" onclick="hideConfirmation()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteField } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDmxpkjyjXu_oo9KOuc6o2LBC0i0UqLNIU",
-            authDomain: "big-bear-medicine.firebaseapp.com",
-            databaseURL: "https://big-bear-medicine-default-rtdb.firebaseio.com",
-            projectId: "big-bear-medicine",
-            storageBucket: "big-bear-medicine.firebasestorage.app",
-            messagingSenderId: "818083848134",
-            appId: "1:818083848134:web:53a06d4b702e6bb0651cc7",
-            measurementId: "G-B6ML41BC1P"
-        };
-
-        // Initialize Firebase only if not already initialized
-        let app;
-        if (getApps().length === 0) {
-            app = initializeApp(firebaseConfig);
-        } else {
-            app = getApps()[0];
-        }
-        const db = getFirestore(app);
-        
-        // Make Firebase available globally
-        window.db = db;
-        window.firestore = { doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteField };
-        
-        // Initialize the app
-        window.addEventListener('DOMContentLoaded', initializeMainApp);
-    </script>
-
-    <script>
-        let currentYear = 2025;
-        let scheduleData = {};
-        let members = [];
-        let pendingAction = null;
-        let currentUser = '';
-        let unsubscribeListeners = [];
-
-        // Initialize application
-        function initializeMainApp() {
-            // Check if user is already logged in
-            const savedUser = localStorage.getItem('bearCircleUser');
-            if (savedUser) {
-                currentUser = savedUser;
-                showMainApp();
-            }
-        }
-
-        // Authentication functions
-        function joinCircle() {
-            const input = document.getElementById('userNameInput');
-            const name = input.value.trim();
-            
-            if (name && name.length >= 2) {
-                currentUser = name;
-                localStorage.setItem('bearCircleUser', name);
-                showMainApp();
-            } else {
-                alert('Please enter your full name (at least 2 characters)');
-            }
-        }
-
-        function logout() {
-            // Clean up listeners
-            unsubscribeListeners.forEach(unsubscribe => unsubscribe());
-            unsubscribeListeners = [];
-            
-            localStorage.removeItem('bearCircleUser');
-            currentUser = '';
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('mainApp').style.display = 'none';
-            document.getElementById('userNameInput').value = '';
-        }
-
-        function showMainApp() {
-            // Check if user is in member list (after members are loaded)
-            if (members.length > 0 && !members.includes(currentUser)) {
-                alert(`Welcome ${currentUser}! You've been added to the sacred circle member list.`);
-                // Auto-add them to members if they're not already there
-                addUserToMembers();
-            }
-            
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            document.getElementById('currentUserName').textContent = currentUser;
-            
-            // Initialize Firebase listeners
-            initializeFirebaseListeners();
-        }
-
-        async function addUserToMembers() {
-            if (!members.includes(currentUser)) {
-                const updatedMembers = [...members, currentUser];
-                await saveToFirebase('members', { 
-                    list: updatedMembers,
-                    addedBy: currentUser,
-                    dateAdded: new Date().toISOString()
-                });
-            }
-        }
-
-        // Firebase functions
-        async function initializeFirebaseListeners() {
-            try {
-                // Set up secure Firestore rules for sacred circle members only
-                await setupSecurityRules();
-                
-                // Listen to members document
-                const membersUnsubscribe = window.firestore.onSnapshot(
-                    window.firestore.doc(window.db, 'bearCircle', 'members'),
-                    (doc) => {
-                        if (doc.exists()) {
-                            members = doc.data().list || [];
-                            updateMembersList();
-                            generateSchedule();
-                        }
-                    }
-                );
-                unsubscribeListeners.push(membersUnsubscribe);
-
-                // Listen to schedule data
-                const scheduleUnsubscribe = window.firestore.onSnapshot(
-                    window.firestore.doc(window.db, 'bearCircle', `schedule-${currentYear}`),
-                    (doc) => {
-                        if (doc.exists()) {
-                            scheduleData = doc.data() || {};
-                            generateSchedule();
-                        }
-                    }
-                );
-                unsubscribeListeners.push(scheduleUnsubscribe);
-
-                updateSyncStatus(true);
-            } catch (error) {
-                console.error('Firebase connection error:', error);
-                updateSyncStatus(false);
-            }
-        }
-
-        async function setupSecurityRules() {
-            // This will be enforced by Firestore security rules
-            // Only allow access to members in the sacred circle whitelist
-            const allowedMembers = [
-                currentUser  // Current user is automatically allowed
-            ];
-            
-            // Note: Actual security is enforced by Firestore rules
-            // This is just for client-side validation
-            if (!allowedMembers.includes(currentUser)) {
-                throw new Error('Access denied: Not a sacred circle member');
-            }
-        }
-
-        function updateSyncStatus(connected) {
-            const statusElement = document.getElementById('syncStatus');
-            if (connected) {
-                statusElement.className = 'sync-status sync-connected';
-                statusElement.innerHTML = '🌙 Connected to sacred circle - Real-time sync active';
-            } else {
-                statusElement.className = 'sync-status sync-disconnected';
-                statusElement.innerHTML = '⚠️ Connection lost - Check internet connection';
-            }
-        }
-
-        async function saveToFirebase(docId, data) {
-            try {
-                // Add security metadata
-                const secureData = {
-                    ...data,
-                    lastModifiedBy: currentUser,
-                    lastModified: new Date().toISOString()
-                };
-                
-                await window.firestore.setDoc(
-                    window.firestore.doc(window.db, 'bearCircle', String(docId)),
-                    secureData,
-                    { merge: true }
-                );
-            } catch (error) {
-                console.error('Error saving to Firebase:', error);
-                alert('Connection error. Please check your internet and try again.');
-            }
-        }
-
-        async function updateFirebaseField(docId, field, value) {
-            try {
-                const docRef = window.firestore.doc(window.db, 'bearCircle', String(docId));
-                await window.firestore.updateDoc(docRef, {
-                    [field]: value,
-                    lastModifiedBy: currentUser,
-                    lastModified: new Date().toISOString()
-                });
-            } catch (error) {
-                console.error('Error updating Firebase:', error);
-            }
-        }
-
-        // Member management
-        async function addMember() {
-            const input = document.getElementById('newMemberName');
-            const name = input.value.trim();
-            
-            if (name && !members.includes(name)) {
-                const updatedMembers = [...members, name];
-                await saveToFirebase('members', { 
-                    list: updatedMembers,
-                    addedBy: currentUser,
-                    dateAdded: new Date().toISOString()
-                });
-                input.value = '';
-            }
-        }
-
-        async function removeMember(name) {
-            // Don't allow removing yourself
-            if (name === currentUser) {
-                alert('You cannot remove yourself from the sacred circle.');
-                return;
-            }
-            
-            const updatedMembers = members.filter(m => m !== name);
-            await saveToFirebase('members', { 
-                list: updatedMembers,
-                removedBy: currentUser,
-                dateRemoved: new Date().toISOString()
-            });
-        }
-
-        function updateMembersList() {
-            const container = document.getElementById('membersList');
-            container.innerHTML = members.map(member => 
-                `<span class="member-tag">
-                    ${member}
-                    <button class="remove-btn" onclick="removeMember('${member}')">×</button>
-                </span>`
-            ).join('');
-        }
-
-        // New moon date calculations
-        function getNewMoonDates(year) {
-            const knownNewMoons2025 = [
-                new Date(2025, 0, 29),  // January 29
-                new Date(2025, 1, 28),  // February 28
-                new Date(2025, 2, 29),  // March 29
-                new Date(2025, 3, 27),  // April 27
-                new Date(2025, 4, 27),  // May 27
-                new Date(2025, 5, 25),  // June 25
-                new Date(2025, 6, 24),  // July 24
-                new Date(2025, 7, 23),  // August 23
-                new Date(2025, 8, 21),  // September 21
-                new Date(2025, 9, 21),  // October 21
-                new Date(2025, 10, 20), // November 20
-                new Date(2025, 11, 19)  // December 19
-            ];
-
-            if (year === 2025) {
-                return knownNewMoons2025;
-            }
-
-            // Approximation for other years
-            const baseDate = new Date(year, 0, 6);
-            const lunarCycle = 29.53 * 24 * 60 * 60 * 1000;
-            const newMoons = [];
-            
-            for (let i = 0; i < 13; i++) {
-                const moonDate = new Date(baseDate.getTime() + (i * lunarCycle));
-                if (moonDate.getFullYear() === year) {
-                    newMoons.push(moonDate);
-                }
-            }
-            
-            return newMoons.filter(date => date.getFullYear() === year);
-        }
-
-        function getFiveDayWindow(newMoonDate) {
-            const dates = [];
-            for (let i = -2; i <= 2; i++) {
-                const date = new Date(newMoonDate);
-                date.setDate(date.getDate() + i);
-                dates.push({
-                    date: date,
-                    label: i === -2 ? '2 Days Before' : 
-                           i === -1 ? '1 Day Before' : 
-                           i === 0 ? 'New Moon' : 
-                           i === 1 ? '1 Day After' : 
-                           '2 Days After',
-                    isNewMoon: i === 0
-                });
-            }
-            return dates;
-        }
-
-        function formatDate(date) {
-            return date.toLocaleDateString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric'
-            });
-        }
-
-        function formatLongDate(date) {
-            return date.toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
-
-        // Confirmation modal functions
-        function showConfirmation(title, message, action) {
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalMessage').textContent = message;
-            document.getElementById('confirmationModal').style.display = 'flex';
-            pendingAction = action;
-        }
-
-        function hideConfirmation() {
-            document.getElementById('confirmationModal').style.display = 'none';
-            pendingAction = null;
-        }
-
-        function executeConfirmedAction() {
-            if (pendingAction) {
-                pendingAction();
-                hideConfirmation();
-            }
-        }
-
-        function showRandomizeConfirmation(cardId) {
-            showConfirmation(
-                'Randomize Roles',
-                'This will randomly reassign the host and discussion leader roles. Continue?',
-                () => randomizeRoles(cardId)
-            );
-        }
-
-        function showRandomizeAllConfirmation() {
-            showConfirmation(
-                'Randomize All Roles',
-                'This will randomly reassign host and discussion leader roles for ALL moon gatherings. Continue?',
-                () => randomizeAllRoles()
-            );
-        }
-
-        // Role assignment functions
-        async function randomizeRoles(cardId) {
-            if (members.length < 2) return;
-            
-            const shuffled = [...members].sort(() => Math.random() - 0.5);
-            const data = scheduleData[cardId] || {};
-            
-            data.host = shuffled[0];
-            data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
-            
-            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
-        }
-
-        async function randomizeAllRoles() {
-            if (members.length < 2) {
-                alert('You need at least 2 members to assign roles.');
-                return;
-            }
-            
-            const newMoons = getNewMoonDates(currentYear);
-            for (let index = 0; index < newMoons.length; index++) {
-                const cardId = `moon-${currentYear}-${index}`;
-                const shuffled = [...members].sort(() => Math.random() - 0.5);
-                const data = scheduleData[cardId] || {};
-                
-                data.host = shuffled[0];
-                data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
-                
-                await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
-            }
-        }
-
-        // Attendance functions
-        async function updateAttendance(cardId, member, status) {
-            const data = scheduleData[cardId] || {};
-            if (!data.attendance) data.attendance = {};
-            
-            data.attendance[member] = status;
-            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
-        }
-
-        function updateAttendanceDisplay(cardId) {
-            const data = scheduleData[cardId] || {};
-            const attendance = data.attendance || {};
-            
-            const attendingCount = Object.values(attendance).filter(status => status === 'attending').length;
-            const countElement = document.querySelector(`[data-card="${cardId}"] .attendance-count`);
-            
-            if (countElement) {
-                countElement.textContent = `${attendingCount} confirmed attending`;
-                countElement.className = `attendance-count ${attendingCount >= 4 ? 'status-attending' : 'status-maybe'}`;
-            }
-            
-            // Update date option colors
-            const card = document.querySelector(`[data-card="${cardId}"]`);
-            if (card) {
-                const dateOptions = card.querySelectorAll('.date-option');
-                dateOptions.forEach(option => {
-                    option.classList.remove('attendance-low', 'attendance-good');
-                    if (attendingCount >= 4) {
-                        option.classList.add('attendance-good');
-                    } else if (attendingCount > 0) {
-                        option.classList.add('attendance-low');
-                    }
-                });
-            }
-        }
-
-        async function updateRole(cardId, role, member) {
-            const data = scheduleData[cardId] || {};
-            data[role] = member;
-            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
-        }
-
-        // Schedule generation
-        function generateSchedule() {
-            const newMoons = getNewMoonDates(currentYear);
-            const grid = document.getElementById('scheduleGrid');
-            grid.innerHTML = '';
-
-            newMoons.forEach((date, index) => {
-                const cardId = `moon-${currentYear}-${index}`;
-                const savedData = scheduleData[cardId] || {};
-                const fiveDayWindow = getFiveDayWindow(date);
-                const attendance = savedData.attendance || {};
-                const attendingCount = Object.values(attendance).filter(memberDays => {
-                    if (typeof memberDays === 'object') {
-                        return Object.values(memberDays).some(status => status === 'yes');
-                    }
-                    return false;
-                }).length;
-
-                const card = document.createElement('div');
-                card.className = 'moon-card';
-                card.setAttribute('data-card', cardId);
-                
-                card.innerHTML = `
-                    <div class="moon-header">
-                        <div class="moon-icon">🌑</div>
-                        <div class="moon-date">${date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</div>
-                        <div class="moon-day">New Moon: ${formatDate(date)}</div>
-                    </div>
-                    
-                    <div class="date-selection">
-                        <label>Select Sacred Gathering Date:</label>
-                        <div class="date-options">
-                            ${fiveDayWindow.map((day, dayIndex) => `
-                                <div class="date-option ${savedData.selectedDate === dayIndex ? 'selected' : ''} ${attendingCount >= 4 ? 'attendance-good' : attendingCount > 0 ? 'attendance-low' : ''}"
-                                     onclick="selectDate('${cardId}', ${dayIndex})">
-                                    <div class="day-label">${day.label}</div>
-                                    <div class="date-num">${day.date.getDate()}</div>
-                                    <div style="font-size: 10px;">${day.date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    
-                    <div class="roles-section">
-                        <div class="role-assignment">
-                            <span class="role-label">Sacred Host:</span>
-                            <select class="role-selector host-selector" onchange="updateRole('${cardId}', 'host', this.value)">
-                                <option value="">Select host...</option>
-                                ${members.map(member => `<option value="${member}" ${savedData.host === member ? 'selected' : ''}>${member}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="role-assignment">
-                            <span class="role-label">Circle Leader:</span>
-                            <select class="role-selector leader-selector" onchange="updateRole('${cardId}', 'leader', this.value)">
-                                <option value="">Select leader...</option>
-                                ${members.map(member => `<option value="${member}" ${savedData.leader === member ? 'selected' : ''}>${member}</option>`).join('')}
-                            </select>
-                        </div>
-                        <button class="randomize-btn" onclick="showRandomizeConfirmation('${cardId}')">🎲 Randomize Roles (Fair Rotation)</button>
-                        <div style="margin-top: 10px; padding: 10px; background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
-                            <label style="font-size: 11px; color: #F59E0B;">💡 How Daily Attendance Works:</label>
-                            <p style="font-size: 10px; color: #D1D5DB; margin: 5px 0;">
-                                • Each member sets their status for each day in the 5-day window<br>
-                                • Select gathering date above, then randomize roles using attendees for that specific date<br>
-                                • Fair rotation ensures everyone gets equal opportunities to host and lead
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div class="meeting-info">
-                        <div class="meeting-time">
-                            <label>Gathering Time</label>
-                            <input type="time" value="${savedData.time || '19:00'}" 
-                                   onchange="saveDataField('${cardId}', 'time', this.value)">
-                        </div>
-                        
-                        <div class="meeting-location">
-                            <label>Sacred Space Location</label>
-                            <input type="text" placeholder="Enter gathering location..." 
-                                   value="${savedData.location || ''}"
-                                   onchange="saveDataField('${cardId}', 'location', this.value)">
-                        </div>
-                        
-                        <div class="meeting-notes">
-                            <label>Circle Theme & Medicine</label>
-                            <textarea placeholder="Sacred focus, intentions, materials needed..."
-                                      onchange="saveDataField('${cardId}', 'notes', this.value)">${savedData.notes || ''}</textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="attendance-section">
-                        <label>Daily Attendance by Member:</label>
-                        <p style="font-size: 11px; color: #9CA3AF; margin: 5px 0;">Each member can set their status for each day in the 5-day window</p>
-                        <div class="attendance-list">
-                            ${members.map(member => {
-                                const memberAttendance = attendance[member] || {};
-                                return `
-                                    <div class="attendance-item">
-                                        <strong style="display: block; margin-bottom: 10px; color: #F59E0B;">${member}</strong>
-                                        <div class="daily-attendance-grid">
-                                            ${fiveDayWindow.map((day, dayIndex) => {
-                                                const dayStatus = memberAttendance[dayIndex] || 'maybe';
-                                                return `
-                                                    <div class="day-attendance-item">
-                                                        <div class="day-header">
-                                                            <span style="font-weight: bold; font-size: 11px;">${day.date.getDate()}</span>
-                                                            <span style="font-size: 9px; color: #9CA3AF;">${day.label}</span>
-                                                        </div>
-                                                        <select class="day-status-select status-${dayStatus}" 
-                                                                onchange="updateDayStatus('${cardId}', '${member}', ${dayIndex}, this.value); this.className='day-status-select status-' + this.value;">
-                                                            <option value="attending" ${dayStatus === 'attending' ? 'selected' : ''}>✓ Attending</option>
-                                                            <option value="maybe" ${dayStatus === 'maybe' ? 'selected' : ''}>? Maybe</option>
-                                                            <option value="not-attending" ${dayStatus === 'not-attending' ? 'selected' : ''}>✗ Cannot Attend</option>
-                                                        </select>
-                                                    </div>
-                                                `;
-                                            }).join('')}
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                        <div class="attendance-summary">
-                            <div class="attendance-count ${attendingCount >= 4 ? 'status-attending' : 'status-maybe'}">
-                                ${attendingCount} members confirmed attending at least one day
-                            </div>
-                            <div style="margin-top: 8px; font-size: 10px; color: #9CA3AF;">
-                                💡 Role assignment uses members who are "Attending" on the selected gathering date
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                grid.appendChild(card);
-                
-                // Update attendance display for this card
-                updateAttendanceDisplay(cardId);
-            });
-        }
-
-        async function selectDate(cardId, dateIndex) {
-            const data = scheduleData[cardId] || {};
-            data.selectedDate = dateIndex;
-            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
-        }
-
-        async function saveDataField(cardId, field, value) {
-            const data = scheduleData[cardId] || {};
-            data[field] = value;
-            await saveToFirebase('schedule', `${currentYear}/${cardId}`, data);
-        }
-
-        function changeYear(delta) {
-            // Clean up current year listeners
-            unsubscribeListeners.forEach(unsubscribe => unsubscribe());
-            unsubscribeListeners = [];
-            
-            currentYear += delta;
-            document.getElementById('currentYear').textContent = currentYear;
-            
-            // Reinitialize listeners for new year
-            initializeFirebaseListeners();
-        }
-
-        async function exportSchedule() {
-            const newMoons = getNewMoonDates(currentYear);
-            let exportText = `Big Bear Medicine Gathering - Sacred Moon Schedule ${currentYear}\n`;
-            exportText += '🌟'.repeat(70) + '\n\n';
-
-            newMoons.forEach((date, index) => {
-                const cardId = `moon-${currentYear}-${index}`;
-                const data = scheduleData[cardId] || {};
-                const fiveDayWindow = getFiveDayWindow(date);
-                const selectedDate = data.selectedDate !== undefined ? fiveDayWindow[data.selectedDate] : null;
-                const attendance = data.attendance || {};
-                const attendingCount = Object.values(attendance).filter(status => status === 'attending').length;
-                
-                exportText += `🌑 ${date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} New Moon Gathering\n`;
-                exportText += `📅 Sacred Date: ${selectedDate ? formatLongDate(selectedDate.date) : 'TBD'}\n`;
-                exportText += `🕒 Time: ${data.time || 'TBD'}\n`;
-                exportText += `🏔️ Sacred Space: ${data.location || 'TBD'}\n`;
-                exportText += `🏠 Host: ${data.host || 'TBD'}\n`;
-                exportText += `🗣️ Circle Leader: ${data.leader || 'TBD'}\n`;
-                exportText += `✨ Medicine Theme: ${data.notes || 'TBD'}\n`;
-                exportText += `👥 Circle Members Attending: ${attendingCount}\n`;
-                
-                if (Object.keys(attendance).length > 0) {
-                    exportText += `\n🔥 Sacred Circle Daily Attendance:\n`;
-                    Object.entries(attendance).forEach(([member, memberDays]) => {
-                        exportText += `   ${member}:\n`;
-                        if (typeof memberDays === 'object') {
-                            fiveDayWindow.forEach((day, dayIndex) => {
-                                const dayStatus = memberDays[dayIndex] || 'maybe';
-                                const statusIcon = dayStatus === 'yes' ? '✓' : dayStatus === 'maybe' ? '?' : '✗';
-                                const statusText = dayStatus === 'yes' ? 'Yes' : dayStatus === 'maybe' ? 'Maybe' : 'No';
-                                exportText += `     ${day.date.getDate()} (${day.label}): ${statusIcon} ${statusText}\n`;
-                            });
-                        }
-                    });
-                }
-                
-                exportText += '\n' + '🌟'.repeat(50) + '\n\n';
-            });
-
-            exportText += `\nSacred Circle Members: ${members.join(', ')}\n`;
-            
-            // Add role rotation history
-            try {
-                const roleHistory = await getRoleHistory();
-                if (Object.keys(roleHistory).length > 0) {
-                    exportText += `\n🔄 Role Rotation History:\n`;
-                    Object.entries(roleHistory).forEach(([member, roles]) => {
-                        exportText += `   ${member}: Hosted ${roles.host || 0} times, Led ${roles.leader || 0} times\n`;
-                    });
-                }
-            } catch (error) {
-                console.log('Could not load role history for export');
-            }
-            
-            exportText += `\nMay each gathering bring healing, wisdom, and connection to all who join the circle.\n`;
-            exportText += `\nGenerated by: ${currentUser} on ${new Date().toLocaleDateString()}\n`;
-            exportText += `\n--- FIREBASE SECURITY SETUP ---\n`;
-            exportText += `To secure your sacred circle data, update Firestore Rules with:\n\n`;
-            exportText += `rules_version = '2';\n`;
-            exportText += `service cloud.firestore {\n`;
-            exportText += `  match /databases/{database}/documents {\n`;
-            exportText += `    match /bearCircle/{document=**} {\n`;
-            exportText += `      allow read, write: if resource.data.lastModifiedBy in [\n`;
-            members.forEach((member, index) => {
-                exportText += `        "${member}"${index < members.length - 1 ? ',' : ''}\n`;
-            });
-            exportText += `      ];\n`;
-            exportText += `    }\n`;
-            exportText += `  }\n`;
-            exportText += `}\n`;
-            exportText += `\nThis restricts access to only sacred circle members.\n`;
-            exportText += `Update rules before July 11, 2025 to maintain security.\n`;
-
-            const blob = new Blob([exportText], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `big-bear-medicine-gathering-${currentYear}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        // Set up confirmation modal
-        document.getElementById('confirmBtn').onclick = executeConfirmedAction;
-
-        // Enter key support for adding members and login
-        document.addEventListener('DOMContentLoaded', function() {
-            const newMemberInput = document.getElementById('newMemberName');
-            if (newMemberInput) {
-                newMemberInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        addMember();
-                    }
-                });
-            }
-            
-            const loginInput = document.getElementById('userNameInput');
-            if (loginInput) {
-                loginInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        joinCircle();
-                    }
-                });
-            }
-        });
-    </script>
-</body>
-</html>
+                <button class="btn btn-danger
