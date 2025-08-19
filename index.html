@@ -1647,7 +1647,7 @@ function generateAttendeeChips(attendees) {
                                 return `
                                     <div class="attendance-item">
                                         <strong style="display: block; margin-bottom: 10px; color: #F59E0B;">${member}</strong>
-                                        <div class="daily-attendance-grid">
+                                        <div class="day-attendance-item ${dayStatus}">
                                             ${fiveDayWindow.map((day, dayIndex) => {
                                                 const dayStatus = memberAttendance[dayIndex] || 'maybe';
                                                 return `
