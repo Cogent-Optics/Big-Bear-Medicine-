@@ -459,7 +459,7 @@
         }
         
         .member-status-maybe {
-            background: rgba(245, 158, 11, 0.8);
+            background: rgba(147, 51, 234, 0.8);
             color: white;
         }
         
@@ -620,9 +620,9 @@
         }
         
         .status-maybe {
-            background: rgba(245, 158, 11, 0.3) !important;
-            border-color: rgba(245, 158, 11, 0.6) !important;
-            color: #F59E0B !important;
+            background: rgba(147, 51, 234, 0.3) !important;
+            border-color: rgba(147, 51, 234, 0.6) !important;
+            color: #9333EA !important;
         }
         
         .status-no {
@@ -808,8 +808,8 @@
             <h2 class="login-subtitle">Big Bear Medicine Gathering</h2>
             <p style="color: #9CA3AF; margin-bottom: 30px;">Enter your name to join the sacred circle</p>
             
-            <input type="text" id="userNameInput" class="login-input" placeholder="Your Name" maxlength="30">
-            <button class="login-btn" onclick="joinCircle()">Join Sacred Circle</button>
+            <input type="text" id="userNameInput" class="login-input" placeholder="Your Name" maxlength="30" autocomplete="name" autocapitalize="words">
+            <button class="login-btn" type="button" onclick="joinCircle()">Join Sacred Circle</button>
             
             <div class="login-description">
                 A lunar-aligned scheduling system for our sacred men's circle gatherings.<br>
@@ -941,9 +941,12 @@
             const input = document.getElementById('userNameInput');
             const name = input.value.trim();
             
+            console.log('joinCircle called with name:', name); // Debug log
+            
             if (name && name.length >= 2) {
                 currentUser = name;
                 localStorage.setItem('bearCircleUser', name);
+                console.log('User saved to localStorage:', currentUser); // Debug log
                 showMainApp();
             } else {
                 alert('Please enter your full name (at least 2 characters)');
@@ -963,9 +966,13 @@
         }
 
         function showMainApp() {
+            console.log('showMainApp called for user:', currentUser); // Debug log
+            
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             document.getElementById('currentUserName').textContent = currentUser;
+            
+            console.log('UI updated, initializing Firebase...'); // Debug log
             
             // Initialize Firebase listeners
             initializeFirebaseListeners();
@@ -1612,6 +1619,8 @@
 
         // Enter key support for adding members and login
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded'); // Debug log
+            
             const newMemberInput = document.getElementById('newMemberName');
             if (newMemberInput) {
                 newMemberInput.addEventListener('keypress', function(e) {
@@ -1623,11 +1632,48 @@
             
             const loginInput = document.getElementById('userNameInput');
             if (loginInput) {
+                console.log('Login input found, adding event listeners'); // Debug log
+                
+                // Add both keypress and touchend for mobile
                 loginInput.addEventListener('keypress', function(e) {
+                    console.log('Key pressed:', e.key); // Debug log
                     if (e.key === 'Enter') {
+                        e.preventDefault();
                         joinCircle();
                     }
                 });
+                
+                // Add input event for mobile keyboard changes
+                loginInput.addEventListener('input', function(e) {
+                    console.log('Input changed:', e.target.value); // Debug log
+                });
+            }
+            
+            // Add click event to login button explicitly for mobile
+            const loginBtn = document.querySelector('.login-btn');
+            if (loginBtn) {
+                console.log('Login button found, adding click listener'); // Debug log
+                
+                loginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Login button clicked'); // Debug log
+                    joinCircle();
+                });
+                
+                // Add touch events for mobile
+                loginBtn.addEventListener('touchstart', function(e) {
+                    console.log('Login button touched'); // Debug log
+                });
+            }
+            
+            // Test localStorage on mobile
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                console.log('localStorage is working'); // Debug log
+            } catch (error) {
+                console.error('localStorage not available:', error);
+                alert('Local storage not available. This may cause issues on mobile.');
             }
         });
     </script>
