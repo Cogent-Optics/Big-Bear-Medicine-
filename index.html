@@ -1,692 +1,297 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Big Bear Medicine Gathering - Moon Phase Scheduler</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #581c87 100%);
-            color: #f9fafb;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .login-screen {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #581c87 100%);
-            z-index: 1000;
-        }
-
-        .login-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 40px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .login-title {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .login-description {
-            font-size: 16px;
-            margin-bottom: 30px;
-            color: #d1d5db;
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-
-        .login-input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .main-app {
-            display: none;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .app-title {
-            font-size: 36px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .app-subtitle {
-            font-size: 18px;
-            color: #d1d5db;
-            margin-bottom: 20px;
-        }
-
-        .sync-status {
-            display: inline-block;
-            padding: 8px 16px;
-            background: rgba(34, 197, 94, 0.2);
-            border: 1px solid rgba(34, 197, 94, 0.4);
-            border-radius: 20px;
-            color: #22c55e;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-
-        .user-info {
-            font-size: 14px;
-            color: #9ca3af;
-        }
-
-        .create-btn {
-            display: block;
-            margin: 30px auto;
-            padding: 15px 30px;
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .create-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .schedule-grid {
-            display: grid;
-            gap: 30px;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        }
-
-        .schedule-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 25px;
-            position: relative;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .card-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #fbbf24;
-        }
-
-        .delete-btn {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #ef4444;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .card-section {
-            margin-bottom: 25px;
-        }
-
-        .section-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #fbbf24;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .date-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-
-        .date-option {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .date-option:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .date-option.selected {
-            border-color: #fbbf24;
-            background: rgba(251, 191, 36, 0.2);
-            box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
-        }
-
-        .date-option.attendance-green {
-            border-color: #22c55e;
-            background: rgba(34, 197, 94, 0.2);
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
-        }
-
-        .date-option.attendance-purple {
-            border-color: #a855f7;
-            background: rgba(168, 85, 247, 0.2);
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
-        }
-
-        .date-option.attendance-orange {
-            border-color: #f97316;
-            background: rgba(249, 115, 22, 0.2);
-            box-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
-        }
-
-        .date-number {
-            font-size: 24px;
-            font-weight: bold;
-            color: #fbbf24;
-            margin-bottom: 4px;
-        }
-
-        .date-label {
-            font-size: 11px;
-            color: #d1d5db;
-            margin-bottom: 8px;
-        }
-
-        .date-attendees {
-            min-height: 20px;
-        }
-
-        .attendee-chip {
-            display: inline-block;
-            margin: 2px;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 600;
-            text-align: center;
-            line-height: 1.2;
-            min-width: 20px;
-        }
-
-        .attendee-chip.yes {
-            background: rgba(34, 197, 94, 0.8);
-            color: white;
-        }
-
-        .attendee-chip.maybe {
-            background: rgba(245, 158, 11, 0.8);
-            color: white;
-        }
-
-        .attendee-chip.no {
-            background: rgba(239, 68, 68, 0.8);
-            color: white;
-        }
-
-        .attendance-section {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .attendance-count {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .attendance-count.status-yes {
-            background: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.4);
-        }
-
-        .attendance-count.status-maybe {
-            background: rgba(245, 158, 11, 0.2);
-            color: #f59e0b;
-            border: 1px solid rgba(245, 158, 11, 0.4);
-        }
-
-        .attendance-grid {
-            display: grid;
-            gap: 15px;
-        }
-
-        .attendance-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        .daily-attendance-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .day-attendance-item {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 8px;
-            text-align: center;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .day-attendance-item.yes {
-            background: rgba(34, 197, 94, 0.2);
-            border-color: rgba(34, 197, 94, 0.4);
-        }
-
-        .day-attendance-item.maybe {
-            background: rgba(245, 158, 11, 0.2);
-            border-color: rgba(245, 158, 11, 0.4);
-        }
-
-        .day-attendance-item.no {
-            background: rgba(239, 68, 68, 0.2);
-            border-color: rgba(239, 68, 68, 0.4);
-        }
-
-        .day-header {
-            margin-bottom: 8px;
-        }
-
-        .day-status-select {
-            width: 100%;
-            padding: 4px;
-            border: none;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 10px;
-        }
-
-        .day-status-select.status-yes {
-            background: rgba(34, 197, 94, 0.3);
-        }
-
-        .day-status-select.status-maybe {
-            background: rgba(245, 158, 11, 0.3);
-        }
-
-        .day-status-select.status-no {
-            background: rgba(239, 68, 68, 0.3);
-        }
-
-        .meeting-info {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .meeting-info.complete {
-            background: rgba(34, 197, 94, 0.15);
-            border-color: rgba(34, 197, 94, 0.4);
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
-        }
-
-        .selected-date-display {
-            margin-bottom: 15px;
-            padding: 12px;
-            border-radius: 8px;
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-
-        .selected-date-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #F59E0B;
-            margin-top: 5px;
-        }
-
-        .meeting-info.complete .selected-date-value {
-            color: #22C55E;
-        }
-
-        .info-group {
-            margin-bottom: 15px;
-        }
-
-        .info-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #fbbf24;
-            margin-bottom: 8px;
-        }
-
-        .info-group input, .info-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 14px;
-        }
-
-        .info-group input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .randomize-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(45deg, #8b5cf6, #7c3aed);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: all 0.3s ease;
-        }
-
-        .randomize-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
-        }
-
-        .randomize-btn:disabled {
-            background: rgba(107, 114, 128, 0.5);
-            cursor: not-allowed;
-        }
-
-        .how-it-works {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-
-        .how-it-works h4 {
-            color: #F59E0B;
-            margin-bottom: 10px;
-            font-size: 12px;
-        }
-
-        .how-it-works p {
-            font-size: 11px;
-            color: #D1D5DB;
-            line-height: 1.4;
-        }
-
-        @media (max-width: 768px) {
-            .schedule-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .date-options {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .daily-attendance-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="login-screen" id="loginScreen">
-        <div class="login-card">
-            <div class="login-title">Big Bear Medicine</div>
-            <div class="login-description">Sacred Circle Lunar Scheduler</div>
-            <input type="text" id="memberName" class="login-input" placeholder="Enter your sacred name">
-            <button onclick="login()" class="login-btn">🌙 Join the Circle</button>
-        </div>
-    </div>
-
-    <div class="container main-app" id="mainApp">
-        <div class="sync-status" id="syncStatus">🔄 Syncing with Firebase...</div>
-        
-        <div class="header">
-            <h1 class="app-title">🐻 Big Bear Medicine</h1>
-            <p class="app-subtitle">Sacred Men's Circle • Lunar-Aligned Gathering Scheduler</p>
-            <div class="user-info">
-                Welcome, <span id="currentUser"></span> • Aligned with the rhythm of the moon and sacred masculine energy
-            </div>
-        </div>
-
-        <button onclick="createNewSchedule()" class="create-btn">
-            🌙 Create New Sacred Gathering
-        </button>
-
-        <div class="schedule-grid" id="scheduleGrid"></div>
-
-        <div class="how-it-works">
-            <h4>💡 How Sacred Gathering Scheduling Works:</h4>
-            <p>Each gathering shows 5 lunar-aligned dates. Circle members select Yes/Maybe/No for each day. Colors indicate: Green (4+ Yes), Purple (4+ Yes/Maybe), Orange (Less than 4). Click a date to select it for your gathering. The randomizer ensures fair rotation of sacred roles among available members.</p>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-database-compat.min.js"></script>
-
-    <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBXHgx1_Q5HmANF5KKV7p6AIfY2GmG3LYo",
-            authDomain: "big-bear-medicine.firebaseapp.com",
-            databaseURL: "https://big-bear-medicine-default-rtdb.firebaseio.com",
-            projectId: "big-bear-medicine",
-            storageBucket: "big-bear-medicine.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef123456"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
+<script>
         // Global variables
-        let currentUser = '';
+        let currentYear = 2025;
         let scheduleData = {};
+        let members = [];
+        let pendingAction = null;
+        let currentUser = '';
+        let unsubscribeListeners = [];
+        let firebaseInitialized = false;
 
-        // Login function
-        function login() {
-            const memberName = document.getElementById('memberName').value.trim();
-            if (memberName) {
-                currentUser = memberName;
-                document.getElementById('currentUser').textContent = memberName;
+        // Authentication functions
+        function joinCircle() {
+            try {
+                console.log('Join circle clicked');
+                const input = document.getElementById('userNameInput');
+                const name = input?.value?.trim();
+                
+                console.log('Name entered:', name);
+                
+                if (name && name.length >= 2) {
+                    currentUser = name;
+                    localStorage.setItem('bearCircleUser', name);
+                    console.log('User set:', currentUser);
+                    showMainApp();
+                } else {
+                    alert('Please enter your full name (at least 2 characters)');
+                }
+            } catch (error) {
+                console.error('Error in joinCircle:', error);
+                alert('Login error. Please refresh the page and try again.');
+            }
+        }
+
+        function logout() {
+            // Clean up listeners
+            unsubscribeListeners.forEach(unsubscribe => unsubscribe());
+            unsubscribeListeners = [];
+            
+            localStorage.removeItem('bearCircleUser');
+            currentUser = '';
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('userNameInput').value = '';
+        }
+
+        function showMainApp() {
+            try {
+                console.log('Showing main app for user:', currentUser);
+                
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'block';
-                loadSchedules();
+                document.getElementById('currentUserName').textContent = currentUser;
+                
+                // Initialize Firebase listeners if Firebase is ready
+                if (firebaseInitialized && window.db) {
+                    console.log('Firebase ready, initializing listeners');
+                    initializeFirebaseListeners();
+                } else {
+                    console.log('Firebase not ready yet, will initialize listeners when ready');
+                    // Generate basic schedule without Firebase data
+                    generateSchedule();
+                }
+                
+                console.log('Main app displayed successfully');
+            } catch (error) {
+                console.error('Error in showMainApp:', error);
+                alert('Error loading application. Please refresh and try again.');
             }
         }
 
-        // Generate five-day window based on moon phases
-        function generateFiveDayWindow() {
-            const today = new Date();
-            const days = [];
-            const moonPhases = ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘'];
+        async function addUserToMembers() {
+            try {
+                if (!members.includes(currentUser)) {
+                    console.log('Adding user to members:', currentUser);
+                    const updatedMembers = [...members, currentUser];
+                    await saveToFirebase('members', { 
+                        list: updatedMembers,
+                        addedBy: currentUser,
+                        dateAdded: new Date().toISOString()
+                    });
+                }
+            } catch (error) {
+                console.error('Error adding user to members:', error);
+            }
+        }
+
+        function updateSyncStatus(connected) {
+            const statusElement = document.getElementById('syncStatus');
+            if (connected) {
+                statusElement.className = 'sync-status sync-connected';
+                statusElement.innerHTML = '🌙 Connected to sacred circle - Real-time sync active';
+            } else {
+                statusElement.className = 'sync-status sync-disconnected';
+                statusElement.innerHTML = '⚠️ Connection lost - Check internet connection';
+            }
+        }
+
+        async function saveToFirebase(docId, data) {
+            if (!firebaseInitialized || !window.db) {
+                console.log('Firebase not available, saving locally only');
+                return;
+            }
             
-            for (let i = 0; i < 5; i++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
+            try {
+                // Add security metadata
+                const secureData = {
+                    ...data,
+                    lastModifiedBy: currentUser,
+                    lastModified: new Date().toISOString()
+                };
                 
-                const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
-                const moonPhase = moonPhases[Math.floor(Math.random() * moonPhases.length)];
+                console.log('Saving to Firebase:', docId, secureData);
                 
-                days.push({
+                await window.firestore.setDoc(
+                    window.firestore.doc(window.db, 'bearCircle', String(docId)),
+                    secureData,
+                    { merge: true }
+                );
+                
+                console.log('Successfully saved to Firebase');
+            } catch (error) {
+                console.error('Error saving to Firebase:', error);
+                alert('Connection error. Please check your internet and try again.');
+            }
+        }
+
+        async function saveScheduleData(cardId, data) {
+            try {
+                // Save the specific card data to Firebase
+                await window.firestore.setDoc(
+                    window.firestore.doc(window.db, 'bearCircle', `schedule-${currentYear}`),
+                    { [cardId]: data },
+                    { merge: true }
+                );
+                console.log(`Saved ${cardId} data:`, data);
+            } catch (error) {
+                console.error('Error saving schedule data:', error);
+                alert('Connection error. Please check your internet and try again.');
+            }
+        }
+
+        async function updateFirebaseField(docId, field, value) {
+            try {
+                const docRef = window.firestore.doc(window.db, 'bearCircle', String(docId));
+                await window.firestore.updateDoc(docRef, {
+                    [field]: value,
+                    lastModifiedBy: currentUser,
+                    lastModified: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error('Error updating Firebase:', error);
+            }
+        }
+
+        // Member management
+        async function addMember() {
+            const input = document.getElementById('newMemberName');
+            const name = input.value.trim();
+            
+            if (name && !members.includes(name)) {
+                const updatedMembers = [...members, name];
+                await saveToFirebase('members', { 
+                    list: updatedMembers,
+                    addedBy: currentUser,
+                    dateAdded: new Date().toISOString()
+                });
+                input.value = '';
+            }
+        }
+
+        async function removeMember(name) {
+            // Don't allow removing yourself
+            if (name === currentUser) {
+                alert('You cannot remove yourself from the sacred circle.');
+                return;
+            }
+            
+            const updatedMembers = members.filter(m => m !== name);
+            await saveToFirebase('members', { 
+                list: updatedMembers,
+                removedBy: currentUser,
+                dateRemoved: new Date().toISOString()
+            });
+        }
+
+        function updateMembersList() {
+            const container = document.getElementById('membersList');
+            container.innerHTML = members.map(member => 
+                `<span class="member-tag">
+                    ${member}
+                    <button class="remove-btn" onclick="removeMember('${member}')">×</button>
+                </span>`
+            ).join('');
+        }
+
+        // New moon date calculations
+        function getNewMoonDates(year) {
+            const knownNewMoons2025 = [
+                new Date(2025, 0, 29),  // January 29
+                new Date(2025, 1, 28),  // February 28
+                new Date(2025, 2, 29),  // March 29
+                new Date(2025, 3, 27),  // April 27
+                new Date(2025, 4, 27),  // May 27
+                new Date(2025, 5, 25),  // June 25
+                new Date(2025, 6, 24),  // July 24
+                new Date(2025, 7, 23),  // August 23
+                new Date(2025, 8, 21),  // September 21
+                new Date(2025, 9, 21),  // October 21
+                new Date(2025, 10, 20), // November 20
+                new Date(2025, 11, 19)  // December 19
+            ];
+
+            if (year === 2025) {
+                return knownNewMoons2025;
+            }
+
+            // Approximation for other years
+            const baseDate = new Date(year, 0, 6);
+            const lunarCycle = 29.53 * 24 * 60 * 60 * 1000;
+            const newMoons = [];
+            
+            for (let i = 0; i < 13; i++) {
+                const moonDate = new Date(baseDate.getTime() + (i * lunarCycle));
+                if (moonDate.getFullYear() === year) {
+                    newMoons.push(moonDate);
+                }
+            }
+            
+            return newMoons.filter(date => date.getFullYear() === year);
+        }
+
+        function getFiveDayWindow(newMoonDate) {
+            const dates = [];
+            for (let i = -2; i <= 2; i++) {
+                const date = new Date(newMoonDate);
+                date.setDate(date.getDate() + i);
+                dates.push({
                     date: date,
-                    label: `${dayOfWeek} ${moonPhase}`,
-                    dayOfWeek: dayOfWeek
+                    label: i === -2 ? '2 Days Before' : 
+                           i === -1 ? '1 Day Before' : 
+                           i === 0 ? 'New Moon' : 
+                           i === 1 ? '1 Day After' : 
+                           '2 Days After',
+                    isNewMoon: i === 0
                 });
             }
-            return days;
+            return dates;
         }
 
-        // Format date for display
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
         function formatLongDate(date) {
-            return date.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+            return date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
         }
 
-        // Get attendees for a specific date
-        function getDateAttendees(cardId, dayIndex) {
-            const data = scheduleData[cardId] || {};
-            const attendance = data.attendance || {};
-            const attendees = { yes: [], maybe: [], no: [] };
-            
-            Object.keys(attendance).forEach(member => {
-                const memberDays = attendance[member];
-                if (typeof memberDays === 'object' && memberDays[dayIndex]) {
-                    const status = memberDays[dayIndex];
-                    if (attendees[status]) {
-                        attendees[status].push(member);
-                    }
-                }
-            });
-            
-            return attendees;
-        }
-
-        // Generate attendee chips HTML
-        function generateAttendeeChips(attendees) {
-            let html = '';
-            
-            // Add yes attendees (green)
-            attendees.yes.forEach(name => {
-                html += `<span class="attendee-chip yes">${name}</span>`;
-            });
-            
-            // Add maybe attendees (orange)
-            attendees.maybe.forEach(name => {
-                html += `<span class="attendee-chip maybe">${name}</span>`;
-            });
-            
-            // Add no attendees (red)
-            attendees.no.forEach(name => {
-                html += `<span class="attendee-chip no">${name}</span>`;
-            });
-            
-            return html;
-        }
-
-        // Calculate day attendance status for color coding
+        // Updated function to calculate day attendance colors
         function calculateDayAttendanceStatus(cardId, dayIndex) {
             const data = scheduleData[cardId] || {};
             const attendance = data.attendance || {};
             
             let yesCount = 0;
-            let maybeCount = 0;
-            let noCount = 0;
-            let totalResponses = 0;
+            let yesOrMaybeCount = 0;
             
             Object.values(attendance).forEach(memberDays => {
                 if (typeof memberDays === 'object' && memberDays[dayIndex]) {
                     const status = memberDays[dayIndex];
-                    totalResponses++;
                     if (status === 'yes') {
                         yesCount++;
+                        yesOrMaybeCount++;
                     } else if (status === 'maybe') {
-                        maybeCount++;
-                    } else if (status === 'no') {
-                        noCount++;
+                        yesOrMaybeCount++;
                     }
                 }
             });
             
-            // If everyone said no, make it orange
-            if (totalResponses > 0 && noCount === totalResponses) {
-                return 'orange';
-            }
+            console.log(`Day ${dayIndex}: Yes=${yesCount}, Yes+Maybe=${yesOrMaybeCount}`);
             
             // Green: 4+ people with "yes"
             if (yesCount >= 4) {
                 return 'green';
             }
             // Purple: 4+ people with "yes" OR "maybe" (but less than 4 "yes")
-            else if ((yesCount + maybeCount) >= 4) {
+            else if (yesOrMaybeCount >= 4) {
                 return 'purple';
             }
             // Orange: Less than 4 people with "yes" OR "maybe"
@@ -695,165 +300,450 @@
             }
         }
 
-        // Update attendance display
+        // Updated function to get eligible members for role assignment
+        function getEligibleMembersForDay(cardId, dayIndex) {
+            const data = scheduleData[cardId] || {};
+            const attendance = data.attendance || {};
+            const eligible = [];
+            
+            Object.entries(attendance).forEach(([member, memberDays]) => {
+                if (typeof memberDays === 'object' && memberDays[dayIndex] === 'yes') {
+                    eligible.push(member);
+                }
+            });
+            
+            return eligible;
+        }
+
+        // Confirmation modal functions
+        function showConfirmation(title, message, action) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('confirmationModal').style.display = 'flex';
+            pendingAction = action;
+        }
+
+        function hideConfirmation() {
+            document.getElementById('confirmationModal').style.display = 'none';
+            pendingAction = null;
+        }
+
+        function executeConfirmedAction() {
+            if (pendingAction) {
+                pendingAction();
+                hideConfirmation();
+            }
+        }
+
+        function showRandomizeConfirmation(cardId) {
+            showConfirmation(
+                'Randomize Roles',
+                'This will randomly assign host and discussion leader roles from members who said "Yes" on the selected gathering date. Continue?',
+                () => randomizeRoles(cardId)
+            );
+        }
+
+        function showRandomizeAllConfirmation() {
+            showConfirmation(
+                'Randomize All Roles',
+                'This will randomly assign host and discussion leader roles for ALL moon gatherings based on each day\'s "Yes" responses. Continue?',
+                () => randomizeAllRoles()
+            );
+        }
+
+        // Updated role assignment functions
+        async function randomizeRoles(cardId) {
+            const data = scheduleData[cardId] || {};
+            const selectedDate = data.selectedDate;
+            
+            if (selectedDate === undefined) {
+                alert('Please select a gathering date first.');
+                return;
+            }
+            
+            const eligibleMembers = getEligibleMembersForDay(cardId, selectedDate);
+            
+            if (eligibleMembers.length < 2) {
+                alert(`Not enough members confirmed "Yes" for the selected date. Need at least 2, but only ${eligibleMembers.length} confirmed.`);
+                return;
+            }
+            
+            const shuffled = [...eligibleMembers].sort(() => Math.random() - 0.5);
+            data.host = shuffled[0];
+            data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
+            
+            // Update local data immediately
+            scheduleData[cardId] = data;
+            
+            // Save to Firebase
+            await saveScheduleData(cardId, data);
+        }
+
+        async function randomizeAllRoles() {
+            const newMoons = getNewMoonDates(currentYear);
+            let assignedCount = 0;
+            let skippedCount = 0;
+            
+            for (let index = 0; index < newMoons.length; index++) {
+                const cardId = `moon-${currentYear}-${index}`;
+                const data = scheduleData[cardId] || {};
+                const selectedDate = data.selectedDate;
+                
+                if (selectedDate === undefined) {
+                    skippedCount++;
+                    continue;
+                }
+                
+                const eligibleMembers = getEligibleMembersForDay(cardId, selectedDate);
+                
+                if (eligibleMembers.length < 2) {
+                    skippedCount++;
+                    continue;
+                }
+                
+                const shuffled = [...eligibleMembers].sort(() => Math.random() - 0.5);
+                data.host = shuffled[0];
+                data.leader = shuffled[1] !== shuffled[0] ? shuffled[1] : (shuffled[2] || shuffled[0]);
+                
+                // Update local data immediately
+                scheduleData[cardId] = data;
+                
+                // Save to Firebase
+                await saveScheduleData(cardId, data);
+                assignedCount++;
+            }
+            
+            alert(`Roles assigned for ${assignedCount} gatherings. ${skippedCount} gatherings skipped due to no selected date or insufficient "Yes" responses.`);
+        }
+
+        // Updated attendance functions
+        async function updateDayStatus(cardId, member, dayIndex, status) {
+            const data = scheduleData[cardId] || {};
+            if (!data.attendance) data.attendance = {};
+            if (!data.attendance[member]) data.attendance[member] = {};
+            
+            data.attendance[member][dayIndex] = status;
+            
+            // Update local data immediately
+            scheduleData[cardId] = data;
+            
+            // Save to Firebase with correct structure
+            await saveScheduleData(cardId, data);
+            
+            // Update UI immediately
+            updateAttendanceDisplay(cardId);
+        }
+
+        function updateCardSelections(cardId) {
+            const data = scheduleData[cardId] || {};
+            const card = document.querySelector(`[data-card="${cardId}"]`);
+            
+            if (!card) return;
+            
+            // Update selected date
+            const dateOptions = card.querySelectorAll('.date-option');
+            dateOptions.forEach((option, index) => {
+                if (data.selectedDate === index) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+            
+            // Update role selectors
+            const hostSelector = card.querySelector('.host-selector');
+            const leaderSelector = card.querySelector('.leader-selector');
+            
+            if (hostSelector && data.host) {
+                hostSelector.value = data.host;
+            }
+            if (leaderSelector && data.leader) {
+                leaderSelector.value = data.leader;
+            }
+            
+            // Update meeting info fields
+            const timeInput = card.querySelector('input[type="time"]');
+            const locationInput = card.querySelector('.meeting-location input');
+            const notesTextarea = card.querySelector('.meeting-notes textarea');
+            
+            if (timeInput && data.time) {
+                timeInput.value = data.time;
+            }
+            if (locationInput && data.location) {
+                locationInput.value = data.location;
+            }
+            if (notesTextarea && data.notes) {
+                notesTextarea.value = data.notes;
+            }
+            
+            // Update attendance dropdowns
+            const attendance = data.attendance || {};
+            Object.entries(attendance).forEach(([member, memberDays]) => {
+                if (typeof memberDays === 'object') {
+                    Object.entries(memberDays).forEach(([dayIndex, status]) => {
+                        const dropdown = card.querySelector(`select[onchange*="'${member}', ${dayIndex}"]`);
+                        if (dropdown) {
+                            dropdown.value = status;
+                            dropdown.className = `day-status-select status-${status}`;
+                        }
+                    });
+                }
+            });
+        }
+
         function updateAttendanceDisplay(cardId) {
             const data = scheduleData[cardId] || {};
             const attendance = data.attendance || {};
+            
+            console.log(`Updating attendance display for ${cardId}:`, attendance);
             
             // Count members who said yes to any day
             const membersAttending = Object.values(attendance).filter(memberDays => {
                 if (typeof memberDays === 'object') {
                     return Object.values(memberDays).some(status => status === 'yes');
-                }
-                return false;
-            }).length;
-            
-            const countElement = document.querySelector(`[data-card="${cardId}"] .attendance-count`);
-            
-            if (countElement) {
-                countElement.textContent = `${membersAttending} members confirmed attending at least one day`;
-                countElement.className = `attendance-count ${membersAttending >= 4 ? 'status-yes' : 'status-maybe'}`;
-            }
-            
-            // Update date option colors and attendee chips
-            const card = document.querySelector(`[data-card="${cardId}"]`);
-            if (card) {
-                const dateOptions = card.querySelectorAll('.date-option');
-                dateOptions.forEach((option, dayIndex) => {
-                    option.classList.remove('attendance-green', 'attendance-purple', 'attendance-orange');
-                    const status = calculateDayAttendanceStatus(cardId, dayIndex);
-                    option.classList.add(`attendance-${status}`);
-                    
-                    // Update attendee chips for this date
-                    const attendees = getDateAttendees(cardId, dayIndex);
-                    const attendeesContainer = option.querySelector('.date-attendees');
-                    if (attendeesContainer) {
-                        attendeesContainer.innerHTML = generateAttendeeChips(attendees);
-                    }
-                });
-            }
-            
-            // Update randomize button state
-            const randomizeBtn = card?.querySelector('.randomize-btn');
-            if (randomizeBtn) {
-                const selectedDate = data.selectedDate;
-                if (selectedDate !== undefined) {
-                    const eligibleMembers = getEligibleMembersForDay(cardId, selectedDate);
-                    randomizeBtn.disabled = eligibleMembers.length < 2;
-                    randomizeBtn.textContent = eligibleMembers.length < 2 
-                        ? `🎲 Need ${2 - eligibleMembers.length} more "Yes" responses for selected date`
-                        : '🎲 Randomize Roles (Fair Rotation)';
+                <!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+@@ -1306,59 +803,21 @@ <h3 id="modalTitle">Confirm Action</h3>
+</div>
+
+<script>
+        // Global variables
+let currentYear = 2025;
+let scheduleData = {};
+let members = [];
+let pendingAction = null;
+let currentUser = '';
+let unsubscribeListeners = [];
+
+        // Initialize application
+        function initializeMainApp() {
+            try {
+                console.log('Initializing main app...');
+                
+                // Check if user is already logged in
+                const savedUser = localStorage.getItem('bearCircleUser');
+                console.log('Saved user:', savedUser);
+                
+                if (savedUser) {
+                    currentUser = savedUser;
+                    showMainApp();
                 } else {
-                    randomizeBtn.disabled = true;
-                    randomizeBtn.textContent = '🎲 Select gathering date first';
+                    console.log('No saved user, showing login screen');
+                    // Make sure login screen is visible
+                    document.getElementById('loginScreen').style.display = 'flex';
+                    document.getElementById('mainApp').style.display = 'none';
                 }
+                
+            } catch (error) {
+                console.error('Error initializing app:', error);
             }
         }
 
-        // Update day status for a member
-        async function updateDayStatus(cardId, member, dayIndex, status) {
-            if (!scheduleData[cardId]) {
-                scheduleData[cardId] = {};
+        // Make functions globally available
+        window.joinCircle = joinCircle;
+        window.logout = logout;
+        window.addMember = addMember;
+        window.removeMember = removeMember;
+        window.changeYear = changeYear;
+        window.showRandomizeAllConfirmation = showRandomizeAllConfirmation;
+        window.showRandomizeConfirmation = showRandomizeConfirmation;
+        window.hideConfirmation = hideConfirmation;
+        window.executeConfirmedAction = executeConfirmedAction;
+        window.selectDate = selectDate;
+        window.updateRole = updateRole;
+        window.saveDataField = saveDataField;
+        window.updateDayStatus = updateDayStatus;
+        window.exportSchedule = exportSchedule;
+        let firebaseInitialized = false;
+
+// Authentication functions
+function joinCircle() {
+try {
+console.log('Join circle clicked');
+const input = document.getElementById('userNameInput');
+                const name = input.value.trim();
+                const name = input?.value?.trim();
+
+console.log('Name entered:', name);
+
+@@ -1573,19 +1032,6 @@ <h3 id="modalTitle">Confirm Action</h3>
+}
+}
+
+        async function updateFirebaseField(docId, field, value) {
+            try {
+                const docRef = window.firestore.doc(window.db, 'bearCircle', String(docId));
+                await window.firestore.updateDoc(docRef, {
+                    [field]: value,
+                    lastModifiedBy: currentUser,
+                    lastModified: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error('Error updating Firebase:', error);
             }
-            if (!scheduleData[cardId].attendance) {
-                scheduleData[cardId].attendance = {};
-            }
-            if (!scheduleData[cardId].attendance[member]) {
-                scheduleData[cardId].attendance[member] = {};
-            }
-            
-            scheduleData[cardId].attendance[member][dayIndex] = status;
-            
-            await saveScheduleData(cardId, scheduleData[cardId]);
-            updateAttendanceDisplay(cardId);
         }
 
-        // Get eligible members for a specific day
-        function getEligibleMembersForDay(cardId, dayIndex) {
+// Member management
+async function addMember() {
+const input = document.getElementById('newMemberName');
+@@ -1868,62 +1314,7 @@ <h3 id="modalTitle">Confirm Action</h3>
+updateAttendanceDisplay(cardId);
+}
+
+        function updateCardSelections(cardId) {
             const data = scheduleData[cardId] || {};
-            const attendance = data.attendance || {};
+            const card = document.querySelector(`[data-card="${cardId}"]`);
             
-            return Object.keys(attendance).filter(member => {
-                const memberDays = attendance[member];
-                return typeof memberDays === 'object' && memberDays[dayIndex] === 'yes';
+            if (!card) return;
+            
+            // Update selected date
+            const dateOptions = card.querySelectorAll('.date-option');
+            dateOptions.forEach((option, index) => {
+                if (data.selectedDate === index) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+            
+            // Update role selectors
+            const hostSelector = card.querySelector('.host-selector');
+            const leaderSelector = card.querySelector('.leader-selector');
+            
+            if (hostSelector && data.host) {
+                hostSelector.value = data.host;
+            }
+            if (leaderSelector && data.leader) {
+                leaderSelector.value = data.leader;
+            }
+            
+            // Update meeting info fields
+            const timeInput = card.querySelector('input[type="time"]');
+            const locationInput = card.querySelector('.meeting-location input');
+            const notesTextarea = card.querySelector('.meeting-notes textarea');
+            
+            if (timeInput && data.time) {
+                timeInput.value = data.time;
+            }
+            if (locationInput && data.location) {
+                locationInput.value = data.location;
+            }
+            if (notesTextarea && data.notes) {
+                notesTextarea.value = data.notes;
+            }
+            
+            // Update attendance dropdowns
+            const attendance = data.attendance || {};
+            Object.entries(attendance).forEach(([member, memberDays]) => {
+                if (typeof memberDays === 'object') {
+                    Object.entries(memberDays).forEach(([dayIndex, status]) => {
+                        const dropdown = card.querySelector(`select[onchange*="'${member}', ${dayIndex}"]`);
+                        if (dropdown) {
+                            dropdown.value = status;
+                            dropdown.className = `day-status-select status-${status}`;
+                        }
+                    });
+                }
+            });
+        }
+        function updateAttendanceDisplay(cardId) {
+const data = scheduleData[cardId] || {};
+const attendance = data.attendance || {};
+
+@@ -1984,6 +1375,63 @@ <h3 id="modalTitle">Confirm Action</h3>
+await saveScheduleData(cardId, data);
+}
+
+        function updateCardSelections(cardId) {
+            const data = scheduleData[cardId] || {};
+            const card = document.querySelector(`[data-card="${cardId}"]`);
+            
+            if (!card) return;
+            
+            // Update selected date
+            const dateOptions = card.querySelectorAll('.date-option');
+            dateOptions.forEach((option, index) => {
+                if (data.selectedDate === index) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+            
+            // Update role selectors
+            const hostSelector = card.querySelector('.host-selector');
+            const leaderSelector = card.querySelector('.leader-selector');
+            
+            if (hostSelector && data.host) {
+                hostSelector.value = data.host;
+            }
+            if (leaderSelector && data.leader) {
+                leaderSelector.value = data.leader;
+            }
+            
+            // Update meeting info fields
+            const timeInput = card.querySelector('input[type="time"]');
+            const locationInput = card.querySelector('.meeting-location input');
+            const notesTextarea = card.querySelector('.meeting-notes textarea');
+            
+            if (timeInput && data.time) {
+                timeInput.value = data.time;
+            }
+            if (locationInput && data.location) {
+                locationInput.value = data.location;
+            }
+            if (notesTextarea && data.notes) {
+                notesTextarea.value = data.notes;
+            }
+            
+            // Update attendance dropdowns
+            const attendance = data.attendance || {};
+            Object.entries(attendance).forEach(([member, memberDays]) => {
+                if (typeof memberDays === 'object') {
+                    Object.entries(memberDays).forEach(([dayIndex, status]) => {
+                        const dropdown = card.querySelector(`select[onchange*="'${member}', ${dayIndex}"]`);
+                        if (dropdown) {
+                            dropdown.value = status;
+                            dropdown.className = `day-status-select status-${status}`;
+                        }
+                    });
+                }
             });
         }
 
-        // Select a date for the gathering
-        async function selectDate(cardId, dateIndex) {
-            const data = scheduleData[cardId] || {};
-            data.selectedDate = dateIndex;
-            
-            scheduleData[cardId] = data;
-            
-            await saveScheduleData(cardId, data);
-            
-            updateAttendanceDisplay(cardId);
-            
-            // Update visual selection
-            const card = document.querySelector(`[data-card="${cardId}"]`);
-            if (card) {
-                const dateOptions = card.querySelectorAll('.date-option');
-                dateOptions.forEach((option, index) => {
-                    if (index === dateIndex) {
-                        option.classList.add('selected');
-                    } else {
-                        option.classList.remove('selected');
-                    }
-                });
-            }
-            
-            generateSchedule();
-        }
+// Schedule generation
+function generateSchedule() {
+const newMoons = getNewMoonDates(currentYear);
+@@ -2227,6 +1675,30 @@ <h3 id="modalTitle">Confirm Action</h3>
+URL.revokeObjectURL(url);
+}
 
-        // Randomize roles fairly
-        async function randomizeRoles(cardId) {
-            const data = scheduleData[cardId] || {};
-            
-            if (data.selectedDate === undefined) {
-                alert('Please select a gathering date first');
-                return;
-            }
-            
-            const eligibleMembers = getEligibleMembersForDay(cardId, data.selectedDate);
-            
-            if (eligibleMembers.length < 2) {
-                alert('Need at least 2 members who said "Yes" for the selected date');
-                return;
-            }
-            
-            // Simple fair randomization
-            const shuffled = [...eligibleMembers].sort(() => Math.random() - 0.5);
-            
-            data.host = shuffled[0];
-            data.leader = shuffled[1] || shuffled[0];
-            
-            scheduleData[cardId] = data;
-            await saveScheduleData(cardId, data);
-            generateSchedule();
-        }
-
-        // Save data field
-        async function saveDataField(cardId, field, value) {
-            if (!scheduleData[cardId]) {
-                scheduleData[cardId] = {};
-            }
-            scheduleData[cardId][field] = value;
-            await saveScheduleData(cardId, scheduleData[cardId]);
-            generateSchedule();
-        }
-
-        // Save schedule data to Firebase
-        async function saveScheduleData(cardId, data) {
+        // Initialize application
+        function initializeMainApp() {
             try {
-                await database.ref(`schedules/${cardId}`).set(data);
-                document.getElementById('syncStatus').textContent = '✅ Synced with Firebase';
-                document.getElementById('syncStatus').style.background = 'rgba(34, 197, 94, 0.2)';
-                document.getElementById('syncStatus').style.color = '#22c55e';
-                document.getElementById('syncStatus').style.borderColor = 'rgba(34, 197, 94, 0.4)';
+                console.log('Initializing main app...');
+                
+                // Check if user is already logged in
+                const savedUser = localStorage.getItem('bearCircleUser');
+                console.log('Saved user:', savedUser);
+                
+                if (savedUser) {
+                    currentUser = savedUser;
+                    showMainApp();
+                } else {
+                    console.log('No saved user, showing login screen');
+                    // Make sure login screen is visible
+                    document.getElementById('loginScreen').style.display = 'flex';
+                    document.getElementById('mainApp').style.display = 'none';
+                }
+                
             } catch (error) {
-                console.error('Error saving to Firebase:', error);
-                document.getElementById('syncStatus').textContent = '❌ Sync failed';
-                document.getElementById('syncStatus').style.background = 'rgba(239, 68, 68, 0.2)';
-                document.getElementById('syncStatus').style.color = '#ef4444';
-                document.getElementById('syncStatus').style.borderColor = '
+                console.error('Error initializing app:', error);
+            }
+        }
+
+// Set up confirmation modal
+document.getElementById('confirmBtn').onclick = executeConfirmedAction;
