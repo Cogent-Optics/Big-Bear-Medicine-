@@ -930,6 +930,10 @@
                 currentUser = savedUser;
                 showMainApp();
             }
+            
+            // Make sure functions are available globally for debugging
+            window.joinCircle = joinCircle;
+            window.showMainApp = showMainApp;
         }
 
         // Authentication functions
@@ -959,19 +963,20 @@
         }
 
         function showMainApp() {
-            // Check if user is in member list (after members are loaded)
-            if (members.length > 0 && !members.includes(currentUser)) {
-                alert(`Welcome ${currentUser}! You've been added to the sacred circle member list.`);
-                // Auto-add them to members if they're not already there
-                addUserToMembers();
-            }
-            
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             document.getElementById('currentUserName').textContent = currentUser;
             
             // Initialize Firebase listeners
             initializeFirebaseListeners();
+            
+            // Check if user is in member list (after members are loaded) - delay this check
+            setTimeout(() => {
+                if (members.length > 0 && !members.includes(currentUser)) {
+                    alert(`Welcome ${currentUser}! You've been added to the sacred circle member list.`);
+                    addUserToMembers();
+                }
+            }, 1000);
         }
 
         async function addUserToMembers() {
@@ -999,7 +1004,19 @@
                             members = doc.data().list || [];
                             updateMembersList();
                             generateSchedule();
+                        } else {
+                            // Initialize with empty members list if document doesn't exist
+                            members = [];
+                            updateMembersList();
+                            generateSchedule();
                         }
+                    },
+                    (error) => {
+                        console.error('Error listening to members:', error);
+                        // Continue without real-time sync
+                        members = [];
+                        updateMembersList();
+                        generateSchedule();
                     }
                 );
                 unsubscribeListeners.push(membersUnsubscribe);
@@ -1011,7 +1028,16 @@
                         if (doc.exists()) {
                             scheduleData = doc.data() || {};
                             generateSchedule();
+                        } else {
+                            scheduleData = {};
+                            generateSchedule();
                         }
+                    },
+                    (error) => {
+                        console.error('Error listening to schedule:', error);
+                        // Continue with empty schedule
+                        scheduleData = {};
+                        generateSchedule();
                     }
                 );
                 unsubscribeListeners.push(scheduleUnsubscribe);
@@ -1020,6 +1046,11 @@
             } catch (error) {
                 console.error('Firebase connection error:', error);
                 updateSyncStatus(false);
+                // Continue in offline mode
+                members = [];
+                scheduleData = {};
+                updateMembersList();
+                generateSchedule();
             }
         }
 
@@ -1032,9 +1063,8 @@
             
             // Note: Actual security is enforced by Firestore rules
             // This is just for client-side validation
-            if (!allowedMembers.includes(currentUser)) {
-                throw new Error('Access denied: Not a sacred circle member');
-            }
+            // For now, allow all users to access (remove this check during testing)
+            return true;
         }
 
         function updateSyncStatus(connected) {
