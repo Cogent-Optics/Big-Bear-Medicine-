@@ -1747,18 +1747,34 @@ function generateAttendeeChips(attendees) {
         }
 
         async function selectDate(cardId, dateIndex) {
-            const data = scheduleData[cardId] || {};
-            data.selectedDate = dateIndex;
-            
-            // Update local data immediately
-            scheduleData[cardId] = data;
-            
-            // Save to Firebase
-            await saveScheduleData(cardId, data);
-            
-            // Update UI to reflect the selection and any button state changes
-            updateAttendanceDisplay(cardId);
-        }
+    const data = scheduleData[cardId] || {};
+    data.selectedDate = dateIndex;
+    
+    // Update local data immediately
+    scheduleData[cardId] = data;
+    
+    // Save to Firebase
+    await saveScheduleData(cardId, data);
+    
+    // Update UI to reflect the selection and any button state changes
+    updateAttendanceDisplay(cardId);
+    
+    // Update the selected state visually
+    const card = document.querySelector(`[data-card="${cardId}"]`);
+    if (card) {
+        const dateOptions = card.querySelectorAll('.date-option');
+        dateOptions.forEach((option, index) => {
+            if (index === dateIndex) {
+                option.classList.add('selected');
+            } else {
+                option.classList.remove('selected');
+            }
+        });
+    }
+    
+    // Regenerate the meeting info section to update completion status
+    generateSchedule();
+}
 
         async function saveDataField(cardId, field, value) {
             const data = scheduleData[cardId] || {};
